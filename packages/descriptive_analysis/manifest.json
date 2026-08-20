@@ -1,0 +1,171 @@
+{
+  "protocol_version": "1.0",
+  "package_id": "descriptive_analysis",
+  "package_name": "描述性分析算法包",
+  "version": "0.1.0",
+  "publisher": "项目组",
+  "description": "提供数据概览、频数、列联、描述统计、分类汇总和正态性检验。",
+  "runtime": {
+    "python": ">=3.11,<3.13",
+    "dependencies": [
+      {"name": "pandas", "version": ">=2.2,<3.0"},
+      {"name": "numpy", "version": ">=1.26,<3.0"},
+      {"name": "scipy", "version": ">=1.13,<2.0"},
+      {"name": "pydantic", "version": ">=2.8,<3.0"}
+    ]
+  },
+  "algorithms": [
+    {
+      "algorithm_id": "data_overview",
+      "display_name": "数据概览",
+      "category": "descriptive_analysis",
+      "description": "查看字段质量和数据预览。",
+      "methods": [
+        {
+          "method_id": "basic",
+          "display_name": "基础概览",
+          "entry": "algorithms.data_overview:run",
+          "description": "生成字段规模、类型、缺失、唯一值和数据预览。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "columns", "display_name": "概览字段", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"], "allow_missing": true, "finite_only": false}
+          ], "constraints": []},
+          "parameters_schema": {"$schema": "https://json-schema.org/draft/2020-12/schema", "type": "object", "properties": {
+            "preview_rows": {"type": "integer", "default": 10, "minimum": 1, "maximum": 100},
+            "include_missing": {"type": "boolean", "default": true},
+            "include_unique": {"type": "boolean", "default": true},
+            "include_duplicates": {"type": "boolean", "default": true}
+          }, "additionalProperties": false},
+          "output": {"data_type": "analysis_result", "produces_data_version": false, "result_blocks": ["metrics", "tables", "warnings", "metadata"]},
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "algorithm_id": "frequency_analysis",
+      "display_name": "频数分析",
+      "category": "descriptive_analysis",
+      "description": "计算原值频数或连续变量分箱频数。",
+      "methods": [
+        {
+          "method_id": "exact",
+          "display_name": "精确频数",
+          "entry": "algorithms.frequency_analysis:run_exact",
+          "description": "按原始取值统计频数、百分比和累计百分比。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "columns", "display_name": "分析字段", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+          ], "constraints": []},
+          "parameters_schema": {"type": "object", "properties": {
+            "include_missing": {"type": "boolean", "default": false},
+            "sort_by": {"type": "string", "enum": ["count_desc", "value_asc"], "default": "count_desc"},
+            "top_n": {"type": "integer", "minimum": 0, "maximum": 10000, "default": 0}
+          }, "additionalProperties": false},
+          "output": {"data_type": "analysis_result", "produces_data_version": false},
+          "deterministic": true
+        },
+        {
+          "method_id": "binned",
+          "display_name": "分箱频数",
+          "entry": "algorithms.frequency_analysis:run_binned",
+          "description": "对连续定量变量进行等宽、等频或自定义分箱。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "columns", "display_name": "定量字段", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}
+          ], "constraints": []},
+          "parameters_schema": {"type": "object", "properties": {
+            "include_missing": {"type": "boolean", "default": false},
+            "bin_method": {"type": "string", "enum": ["equal_width", "equal_frequency", "custom"], "default": "equal_width"},
+            "bin_count": {"type": "integer", "minimum": 2, "maximum": 100, "default": 10},
+            "custom_edges": {"type": "array", "items": {"type": "number"}, "default": []}
+          }, "additionalProperties": false},
+          "output": {"data_type": "analysis_result", "produces_data_version": false},
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "algorithm_id": "contingency_analysis",
+      "display_name": "列联（交叉）分析",
+      "category": "descriptive_analysis",
+      "description": "按一个分组变量对多个变量进行交叉统计。",
+      "methods": [
+        {
+          "method_id": "crosstab",
+          "display_name": "列联表",
+          "entry": "algorithms.contingency_analysis:run",
+          "description": "输出频数、行列百分比和可选卡方检验。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "group_column", "display_name": "分组变量", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"]},
+            {"id": "x_columns", "display_name": "分析变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+          ], "constraints": [{"type": "slots_disjoint", "slots": ["group_column", "x_columns"]}]},
+          "parameters_schema": {"type": "object", "properties": {
+            "include_missing": {"type": "boolean", "default": false},
+            "include_chi_square": {"type": "boolean", "default": true},
+            "normalize": {"type": "string", "enum": ["none", "index", "columns", "all"], "default": "none"},
+            "binning": {"type": "object", "default": {}, "additionalProperties": {"type": "object", "properties": {"bin_count": {"type": "integer", "minimum": 2, "maximum": 100}}, "required": ["bin_count"], "additionalProperties": false}}
+          }, "additionalProperties": false},
+          "output": {"data_type": "analysis_result", "produces_data_version": false},
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "algorithm_id": "descriptive_statistics",
+      "display_name": "描述性统计",
+      "category": "descriptive_analysis",
+      "description": "计算定量变量的集中趋势、离散程度和分布形态。",
+      "methods": [
+        {
+          "method_id": "basic",
+          "display_name": "描述统计",
+          "entry": "algorithms.descriptive_statistics:run",
+          "description": "对一个或多个定量变量生成描述统计量。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}
+          ], "constraints": []},
+          "parameters_schema": {"type": "object", "properties": {
+            "statistics": {"type": "array", "items": {"type": "string", "enum": ["count", "missing", "mean", "std", "variance", "min", "q1", "median", "q3", "max", "range", "iqr", "skewness", "kurtosis", "coefficient_of_variation", "standard_error"]}, "uniqueItems": true, "default": ["count", "missing", "mean", "std", "min", "q1", "median", "q3", "max", "skewness", "kurtosis"]},
+            "round_digits": {"type": "integer", "minimum": 0, "maximum": 12, "default": 4}
+          }, "additionalProperties": false},
+          "output": {"data_type": "analysis_result", "produces_data_version": false},
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "algorithm_id": "group_summary",
+      "display_name": "分类汇总",
+      "category": "descriptive_analysis",
+      "description": "按定类变量对定量变量进行分组汇总。",
+      "methods": [
+        {
+          "method_id": "aggregate",
+          "display_name": "分组汇总",
+          "entry": "algorithms.group_summary:run",
+          "description": "支持计数、最大值、最小值、求和、标准差、均值和中位数。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "group_columns", "display_name": "分组变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"]},
+            {"id": "value_columns", "display_name": "汇总变量", "type": "columns", "required": false, "min_items": 0, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}
+          ], "constraints": [{"type": "slots_disjoint", "slots": ["group_columns", "value_columns"]}]},
+          "parameters_schema": {"type": "object", "properties": {
+            "aggregations": {"type": "array", "items": {"type": "string", "enum": ["max", "min", "sum", "std", "mean", "median", "count"]}, "minItems": 1, "uniqueItems": true, "default": ["count"]},
+            "drop_missing_groups": {"type": "boolean", "default": true},
+            "round_digits": {"type": "integer", "minimum": 0, "maximum": 12, "default": 4}
+          }, "additionalProperties": false},
+          "output": {"data_type": "analysis_result", "produces_data_version": false},
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "algorithm_id": "normality_test",
+      "display_name": "正态性检验",
+      "category": "descriptive_analysis",
+      "description": "提供自动、Shapiro、D'Agostino K² 和 Anderson-Darling 检验。",
+      "methods": [
+        {"method_id": "auto", "display_name": "自动选择", "entry": "algorithms.normality_test:run_auto", "description": "根据样本数自动选择检验。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"alpha": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.05}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "shapiro", "display_name": "Shapiro-Wilk", "entry": "algorithms.normality_test:run_shapiro", "description": "执行 Shapiro-Wilk 正态性检验。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"alpha": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.05}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "dagostino", "display_name": "D'Agostino K²", "entry": "algorithms.normality_test:run_dagostino", "description": "执行 D'Agostino K² 正态性检验。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": [{"type": "min_rows", "slots": [], "value": 8}]}, "parameters_schema": {"type": "object", "properties": {"alpha": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.05}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "anderson", "display_name": "Anderson-Darling", "entry": "algorithms.normality_test:run_anderson", "description": "执行 Anderson-Darling 正态性检验。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"alpha": {"type": "number", "enum": [0.15, 0.10, 0.05, 0.025, 0.01], "default": 0.05}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    }
+  ]
+}

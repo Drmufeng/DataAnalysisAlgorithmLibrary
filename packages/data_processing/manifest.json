@@ -1,0 +1,94 @@
+{
+  "protocol_version": "1.0",
+  "package_id": "data_processing",
+  "package_name": "数据处理算法包",
+  "version": "0.1.0",
+  "publisher": "项目组",
+  "description": "提供数据编码、异常值处理和无效样本处理，并始终返回新的数据副本。",
+  "runtime": {"python": ">=3.11,<3.13", "dependencies": [
+    {"name": "pandas", "version": ">=2.2,<3.0"},
+    {"name": "numpy", "version": ">=1.26,<3.0"},
+    {"name": "scipy", "version": ">=1.13,<2.0"},
+    {"name": "pydantic", "version": ">=2.8,<3.0"}
+  ]},
+  "algorithms": [
+    {
+      "algorithm_id": "data_encoding",
+      "display_name": "数据编码",
+      "category": "data_processing",
+      "description": "使用手工映射、数值范围或自动分箱生成编码字段。",
+      "methods": [
+        {
+          "method_id": "manual",
+          "display_name": "新编码",
+          "entry": "algorithms.data_encoding:run_manual",
+          "description": "将明确的原值映射为新值。",
+          "input": {"data_type": "table", "slots": [{"id": "source_column", "display_name": "待编码变量", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": []},
+          "parameters_schema": {"type": "object", "properties": {
+            "mapping": {"type": "object", "minProperties": 1, "additionalProperties": {"type": ["string", "number", "integer", "boolean", "null"]}},
+            "unmatched": {"type": "string", "enum": ["keep", "null", "error"], "default": "keep"},
+            "include_missing": {"type": "boolean", "default": false},
+            "output_mode": {"type": "string", "enum": ["new_column", "replace"], "default": "new_column"},
+            "output_column_name": {"type": "string", "minLength": 1, "maxLength": 128, "default": "encoded_value"}
+          }, "required": ["mapping"], "additionalProperties": false},
+          "output": {"data_type": "table", "produces_data_version": true},
+          "deterministic": true
+        },
+        {
+          "method_id": "range",
+          "display_name": "范围编码",
+          "entry": "algorithms.data_encoding:run_range",
+          "description": "按互不重叠的左闭右开范围编码。",
+          "input": {"data_type": "table", "slots": [{"id": "source_column", "display_name": "定量变量", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []},
+          "parameters_schema": {"type": "object", "properties": {
+            "ranges": {"type": "array", "minItems": 1, "items": {"type": "object", "properties": {"minimum": {"type": ["number", "null"]}, "maximum": {"type": ["number", "null"]}, "value": {"type": ["string", "number", "integer", "boolean", "null"]}}, "required": ["value"], "additionalProperties": false}},
+            "unmatched": {"type": "string", "enum": ["keep", "null", "error"], "default": "keep"},
+            "include_missing": {"type": "boolean", "default": false},
+            "output_mode": {"type": "string", "enum": ["new_column", "replace"], "default": "new_column"},
+            "output_column_name": {"type": "string", "minLength": 1, "maxLength": 128, "default": "encoded_value"}
+          }, "required": ["ranges"], "additionalProperties": false},
+          "output": {"data_type": "table", "produces_data_version": true},
+          "deterministic": true
+        },
+        {
+          "method_id": "auto_bin",
+          "display_name": "自动分组",
+          "entry": "algorithms.data_encoding:run_auto_bin",
+          "description": "按等宽或等频规则自动分箱并生成组号。",
+          "input": {"data_type": "table", "slots": [{"id": "source_column", "display_name": "定量变量", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []},
+          "parameters_schema": {"type": "object", "properties": {
+            "bin_method": {"type": "string", "enum": ["equal_width", "equal_frequency"], "default": "equal_width"},
+            "bin_count": {"type": "integer", "minimum": 2, "maximum": 100, "default": 5},
+            "output_mode": {"type": "string", "enum": ["new_column", "replace"], "default": "new_column"},
+            "output_column_name": {"type": "string", "minLength": 1, "maxLength": 128, "default": "encoded_group"}
+          }, "additionalProperties": false},
+          "output": {"data_type": "table", "produces_data_version": true},
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "algorithm_id": "outlier_handling",
+      "display_name": "异常值处理",
+      "category": "data_processing",
+      "description": "识别定量变量异常值并按可控策略处置。",
+      "methods": [
+        {"method_id": "auto", "display_name": "自动识别", "entry": "algorithms.outlier_handling:run_auto", "description": "按偏度自动选择 IQR 或 MAD。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"action": {"type": "string", "enum": ["set_null", "custom_value", "mean", "median", "mode", "zero", "random_valid_value", "winsorize"], "default": "set_null"}, "replacement_value": {"type": "number", "default": 0}, "bounds": {"type": "object", "default": {}}, "threshold": {"type": "number", "exclusiveMinimum": 0, "default": 3.5}, "k": {"type": "number", "exclusiveMinimum": 0, "default": 1.5}}, "additionalProperties": false}, "output": {"data_type": "table", "produces_data_version": true}, "deterministic": true},
+        {"method_id": "custom", "display_name": "自定义识别", "entry": "algorithms.outlier_handling:run_custom", "description": "按每个字段的自定义上下限识别。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"action": {"type": "string", "enum": ["set_null", "custom_value", "mean", "median", "mode", "zero", "random_valid_value", "winsorize"], "default": "set_null"}, "replacement_value": {"type": "number", "default": 0}, "bounds": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "object", "properties": {"minimum": {"type": ["number", "null"]}, "maximum": {"type": ["number", "null"]}}, "additionalProperties": false}}}, "required": ["bounds"], "additionalProperties": false}, "output": {"data_type": "table", "produces_data_version": true}, "deterministic": true},
+        {"method_id": "mad", "display_name": "MAD", "entry": "algorithms.outlier_handling:run_mad", "description": "使用中位数绝对偏差识别。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"action": {"type": "string", "enum": ["set_null", "custom_value", "mean", "median", "mode", "zero", "random_valid_value", "winsorize"], "default": "set_null"}, "replacement_value": {"type": "number", "default": 0}, "bounds": {"type": "object", "default": {}}, "threshold": {"type": "number", "exclusiveMinimum": 0, "default": 3.5}}, "additionalProperties": false}, "output": {"data_type": "table", "produces_data_version": true}, "deterministic": true},
+        {"method_id": "iqr", "display_name": "IQR", "entry": "algorithms.outlier_handling:run_iqr", "description": "使用四分位距识别。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"action": {"type": "string", "enum": ["set_null", "custom_value", "mean", "median", "mode", "zero", "random_valid_value", "winsorize"], "default": "set_null"}, "replacement_value": {"type": "number", "default": 0}, "bounds": {"type": "object", "default": {}}, "k": {"type": "number", "exclusiveMinimum": 0, "default": 1.5}}, "additionalProperties": false}, "output": {"data_type": "table", "produces_data_version": true}, "deterministic": true},
+        {"method_id": "three_sigma", "display_name": "3Sigma", "entry": "algorithms.outlier_handling:run_three_sigma", "description": "使用均值加减标准差倍数识别。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"action": {"type": "string", "enum": ["set_null", "custom_value", "mean", "median", "mode", "zero", "random_valid_value", "winsorize"], "default": "set_null"}, "replacement_value": {"type": "number", "default": 0}, "bounds": {"type": "object", "default": {}}, "k": {"type": "number", "exclusiveMinimum": 0, "default": 3.0}}, "additionalProperties": false}, "output": {"data_type": "table", "produces_data_version": true}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "invalid_sample_handling",
+      "display_name": "无效样本处理",
+      "category": "data_processing",
+      "description": "使用安全的白名单规则识别、标记或删除无效记录。",
+      "methods": [
+        {"method_id": "rule_based", "display_name": "单规则判断", "entry": "algorithms.invalid_sample_handling:run_rule_based", "description": "执行一条预设有效性规则。", "input": {"data_type": "table", "slots": [{"id": "check_columns", "display_name": "检查变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number", "string", "boolean", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"rules": {"type": "array", "minItems": 1, "maxItems": 1, "items": {"$ref": "#/$defs/rule"}}, "combination": {"type": "string", "enum": ["any", "all", "weighted_score"], "default": "any"}, "action": {"type": "string", "enum": ["flag", "remove_rows"], "default": "flag"}, "flag_column_name": {"type": "string", "minLength": 1, "maxLength": 128, "default": "invalid_sample"}, "score_threshold": {"type": "number", "minimum": 0, "default": 1.0}}, "required": ["rules"], "$defs": {"rule": {"type": "object", "properties": {"type": {"type": "string", "enum": ["missing_ratio", "value_range", "allowed_values", "data_type", "unique_key", "duplicate_row", "cross_field_rule", "pattern"]}, "columns": {"type": "array", "items": {"type": "string"}, "minItems": 1}, "threshold": {"type": "number", "minimum": 0, "maximum": 1}, "minimum": {"type": "number"}, "maximum": {"type": "number"}, "values": {"type": "array"}, "expected": {"type": "string", "enum": ["number"]}, "operator": {"type": "string", "enum": ["lt", "le", "gt", "ge", "eq", "ne"]}, "pattern": {"type": "string", "maxLength": 256}, "weight": {"type": "number", "minimum": 0, "default": 1}}, "required": ["type"], "additionalProperties": false}}, "additionalProperties": false}, "output": {"data_type": "table", "produces_data_version": true}, "deterministic": true},
+        {"method_id": "custom_rules", "display_name": "组合规则判断", "entry": "algorithms.invalid_sample_handling:run_custom_rules", "description": "使用 any、all 或加权阈值组合多条规则。", "input": {"data_type": "table", "slots": [{"id": "check_columns", "display_name": "检查变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number", "string", "boolean", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"rules": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/rule"}}, "combination": {"type": "string", "enum": ["any", "all", "weighted_score"], "default": "any"}, "action": {"type": "string", "enum": ["flag", "remove_rows"], "default": "flag"}, "flag_column_name": {"type": "string", "minLength": 1, "maxLength": 128, "default": "invalid_sample"}, "score_threshold": {"type": "number", "minimum": 0, "default": 1.0}}, "required": ["rules"], "$defs": {"rule": {"type": "object", "properties": {"type": {"type": "string", "enum": ["missing_ratio", "value_range", "allowed_values", "data_type", "unique_key", "duplicate_row", "cross_field_rule", "pattern"]}, "columns": {"type": "array", "items": {"type": "string"}, "minItems": 1}, "threshold": {"type": "number", "minimum": 0, "maximum": 1}, "minimum": {"type": "number"}, "maximum": {"type": "number"}, "values": {"type": "array"}, "expected": {"type": "string", "enum": ["number"]}, "operator": {"type": "string", "enum": ["lt", "le", "gt", "ge", "eq", "ne"]}, "pattern": {"type": "string", "maxLength": 256}, "weight": {"type": "number", "minimum": 0, "default": 1}}, "required": ["type"], "additionalProperties": false}}, "additionalProperties": false}, "output": {"data_type": "table", "produces_data_version": true}, "deterministic": true}
+      ]
+    }
+  ]
+}

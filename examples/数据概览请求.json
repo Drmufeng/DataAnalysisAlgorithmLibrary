@@ -1,0 +1,26 @@
+{
+  "operation_key": "data_overview.basic",
+  "slots": {
+    "columns": ["学号", "性别", "成绩", "提交时间"]
+  },
+  "parameters": {
+    "preview_rows": 5,
+    "include_missing": true,
+    "include_unique": true,
+    "include_duplicates": true
+  },
+  "context": {
+    "run_id": "example-run-001",
+    "step_id": "step-1",
+    "locale": "zh-CN",
+    "random_seed": 42,
+    "protocol_version": "1.0",
+    "field_metadata": {
+      "学号": {"data_type": "integer", "analysis_type": "categorical", "semantic_role": "identifier"},
+      "性别": {"data_type": "string", "analysis_type": "categorical"},
+      "成绩": {"data_type": "number", "analysis_type": "quantitative", "semantic_role": "measure"},
+      "提交时间": {"data_type": "datetime", "analysis_type": "categorical", "semantic_role": "time"}
+    }
+  }
+}
+

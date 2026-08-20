@@ -1,0 +1,74 @@
+[build-system]
+requires = ["setuptools>=75", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "data-analysis-algorithm-library"
+version = "0.1.0"
+description = "数据处理与可视化分析系统的独立算法库"
+readme = "项目说明.md"
+requires-python = ">=3.11,<3.13"
+dependencies = [
+  "jsonschema>=4.23,<5.0",
+  "numpy>=1.26,<3.0",
+  "packaging>=24,<27",
+  "pandas>=2.2,<3.0",
+  "pyarrow>=16,<25",
+  "pydantic>=2.8,<3.0",
+  "scikit-learn>=1.5,<2.0",
+  "scipy>=1.13,<2.0",
+  "statsmodels>=0.14,<1.0",
+]
+
+[project.optional-dependencies]
+full = [
+  "lightgbm>=4.5,<5.0",
+]
+dev = [
+  "build>=1.2,<2.0",
+  "mypy>=1.11,<2.0",
+  "pandas-stubs>=2.2,<3.0",
+  "pytest>=8.3,<9.0",
+  "ruff>=0.8,<1.0",
+  "types-jsonschema>=4.23,<5.0",
+]
+
+[project.scripts]
+dal-algorithm = "algorithm_cli.cli:main"
+dal-runner = "runner_contract.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["algorithm_sdk*", "algorithm_cli*", "runner_contract*", "packages*"]
+
+[tool.setuptools.package-data]
+"packages.descriptive_analysis" = ["manifest.json", "requirements.txt", "README.md"]
+"packages.data_processing" = ["manifest.json", "requirements.txt", "README.md"]
+"packages.time_signal_processing" = ["manifest.json", "requirements.txt", "README.md"]
+"packages.statistical_association" = ["manifest.json", "requirements.txt", "README.md"]
+"packages.statistical_models" = ["manifest.json", "requirements.txt", "README.md"]
+"packages.clustering_models" = ["manifest.json", "requirements.txt", "README.md"]
+"packages.ml_classification" = ["manifest.json", "requirements.txt", "README.md"]
+"packages.lightgbm_classification" = ["manifest.json", "requirements.txt", "README.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+plugins = ["pydantic.mypy"]
+files = ["algorithm_sdk", "algorithm_cli", "runner_contract", "packages", "tests"]
+exclude = ["build", "dist", ".venv"]
+
+[[tool.mypy.overrides]]
+module = ["lightgbm.*", "scipy.*", "sklearn.*", "statsmodels.*"]
+ignore_missing_imports = true

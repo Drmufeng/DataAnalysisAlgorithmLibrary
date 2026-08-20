@@ -1,0 +1,34 @@
+{
+  "protocol_version": "1.0",
+  "package_id": "clustering_models",
+  "package_name": "聚类分析算法包",
+  "version": "0.1.0",
+  "publisher": "项目组",
+  "description": "提供 K-Means 和 DBSCAN 无监督聚类。",
+  "runtime": {"python": ">=3.11,<3.13", "dependencies": [
+    {"name": "pandas", "version": ">=2.2,<3.0"},
+    {"name": "numpy", "version": ">=1.26,<3.0"},
+    {"name": "scikit-learn", "version": ">=1.5,<2.0"},
+    {"name": "pydantic", "version": ">=2.8,<3.0"}
+  ]},
+  "algorithms": [
+    {
+      "algorithm_id": "kmeans_clustering",
+      "display_name": "聚类分析（K-Means）",
+      "category": "clustering_models",
+      "description": "对定量变量和受控编码后的定类变量执行 K-Means。",
+      "methods": [
+        {"method_id": "standard", "display_name": "标准 K-Means", "entry": "algorithms.clustering:run_kmeans", "description": "支持标准化、固定随机种子并默认生成类别字段。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "聚类变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "min_rows", "slots": [], "value": 2}]}, "parameters_schema": {"type": "object", "properties": {"n_clusters": {"type": "integer", "minimum": 2, "maximum": 1000, "default": 3}, "standardize": {"type": "boolean", "default": true}, "init": {"type": "string", "enum": ["k-means++", "random"], "default": "k-means++"}, "n_init": {"type": "integer", "minimum": 1, "maximum": 100, "default": 10}, "max_iter": {"type": "integer", "minimum": 1, "maximum": 10000, "default": 300}, "generate_label_column": {"type": "boolean", "default": true}, "label_column_name": {"type": "string", "minLength": 1, "maxLength": 128, "default": "cluster_kmeans"}}, "additionalProperties": false}, "output": {"data_type": "analysis_and_optional_table", "produces_data_version_when_data_returned": true}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "dbscan_clustering",
+      "display_name": "密度聚类（DBSCAN）",
+      "category": "clustering_models",
+      "description": "按邻域半径和最小样本数识别密度簇与噪声点。",
+      "methods": [
+        {"method_id": "standard", "display_name": "标准 DBSCAN", "entry": "algorithms.clustering:run_dbscan", "description": "支持欧氏、曼哈顿和切比雪夫距离，并默认生成类别字段。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": [{"type": "min_rows", "slots": [], "value": 2}]}, "parameters_schema": {"type": "object", "properties": {"eps": {"type": "number", "exclusiveMinimum": 0, "default": 0.5}, "min_samples": {"type": "integer", "minimum": 1, "default": 5}, "metric": {"type": "string", "enum": ["euclidean", "manhattan", "chebyshev"], "default": "euclidean"}, "standardize": {"type": "boolean", "default": true}, "generate_label_column": {"type": "boolean", "default": true}, "label_column_name": {"type": "string", "minLength": 1, "maxLength": 128, "default": "cluster_dbscan"}}, "additionalProperties": false}, "output": {"data_type": "analysis_and_optional_table", "produces_data_version_when_data_returned": true}, "deterministic": true}
+      ]
+    }
+  ]
+}

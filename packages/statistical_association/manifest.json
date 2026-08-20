@@ -1,0 +1,97 @@
+{
+  "protocol_version": "1.0",
+  "package_id": "statistical_association",
+  "package_name": "相关性、一致性与分布检验算法包",
+  "version": "0.1.0",
+  "publisher": "项目组",
+  "description": "提供相关、关联、一致性、典型相关和常用非参数分布检验。",
+  "runtime": {"python": ">=3.11,<3.13", "dependencies": [
+    {"name": "pandas", "version": ">=2.2,<3.0"},
+    {"name": "numpy", "version": ">=1.26,<3.0"},
+    {"name": "scipy", "version": ">=1.13,<2.0"},
+    {"name": "scikit-learn", "version": ">=1.5,<2.0"},
+    {"name": "statsmodels", "version": ">=0.14,<1.0"},
+    {"name": "pydantic", "version": ">=2.8,<3.0"}
+  ]},
+  "algorithms": [
+    {
+      "algorithm_id": "association_auto_solver",
+      "display_name": "相关性分析自动求解器",
+      "category": "statistical_association",
+      "description": "按变量分析类型和测量水平逐对选择统计量。",
+      "methods": [
+        {"method_id": "auto", "display_name": "自动求解", "entry": "algorithms.association_auto_solver:run", "description": "自动选择 Pearson、Spearman、Kendall tau-b、Cramér's V、点二列相关或 Eta²。", "input": {"data_type": "table", "slots": [{"id": "analysis_columns", "display_name": "待分析变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"method_preference": {"type": "string", "enum": ["auto", "nonparametric"], "default": "auto"}, "missing": {"type": "string", "enum": ["pairwise", "listwise"], "default": "pairwise"}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "correlation_analysis",
+      "display_name": "相关性分析",
+      "category": "statistical_association",
+      "description": "提供 Pearson、Spearman 和 Kendall tau-b 成对相关。",
+      "methods": [
+        {"method_id": "pearson", "display_name": "Pearson 相关", "entry": "algorithms.correlation:run_pearson", "description": "适用于定量变量以及经过受控编码的二分类或有序变量。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "分析变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"missing": {"type": "string", "enum": ["pairwise", "listwise"], "default": "pairwise"}, "alternative": {"type": "string", "enum": ["two_sided", "less", "greater"], "default": "two_sided"}, "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.95}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "spearman", "display_name": "Spearman 相关", "entry": "algorithms.correlation:run_spearman", "description": "适用于定量变量和标记为有序的定类变量。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "分析变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"missing": {"type": "string", "enum": ["pairwise", "listwise"], "default": "pairwise"}, "alternative": {"type": "string", "enum": ["two_sided", "less", "greater"], "default": "two_sided"}, "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.95}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "kendall_tau_b", "display_name": "Kendall's tau-b", "entry": "algorithms.correlation:run_kendall", "description": "对并列秩进行修正，支持定量和有序定类变量。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "分析变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"missing": {"type": "string", "enum": ["pairwise", "listwise"], "default": "pairwise"}, "alternative": {"type": "string", "enum": ["two_sided", "less", "greater"], "default": "two_sided"}, "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.95}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "cochran_q",
+      "display_name": "Cochran's Q 检验",
+      "category": "statistical_association",
+      "description": "比较三个及以上相关二分类条件的阳性率。",
+      "methods": [
+        {"method_id": "related_binary", "display_name": "相关样本 Q 检验", "entry": "algorithms.distribution_tests:run_cochran_q", "description": "每个条件字段必须恰好有两个有效类别。", "input": {"data_type": "table", "slots": [{"id": "condition_columns", "display_name": "二分类条件", "type": "columns", "required": true, "min_items": 3, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"], "min_unique_values": 2, "max_unique_values": 2}], "constraints": [{"type": "exact_category_count", "slots": ["condition_columns"], "value": 2}]}, "parameters_schema": {"type": "object", "properties": {"positive_value": {"type": ["string", "number", "integer", "boolean"], "default": 1}, "alpha": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.05}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "kappa_agreement",
+      "display_name": "Kappa 一致性检验",
+      "category": "statistical_association",
+      "description": "支持普通、线性加权、平方加权 Cohen Kappa 和 Fleiss Kappa。",
+      "methods": [
+        {"method_id": "cohen", "display_name": "Cohen Kappa", "entry": "algorithms.kappa_agreement:run_cohen", "description": "两位评价者的无序定类一致性。", "input": {"data_type": "table", "slots": [{"id": "rater_columns", "display_name": "评价变量", "type": "columns", "required": true, "min_items": 2, "max_items": 2, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}, {"id": "frequency_weight", "display_name": "频数权重", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["rater_columns", "frequency_weight"]}]}, "parameters_schema": {"type": "object", "properties": {"missing": {"type": "string", "enum": ["drop_row", "treat_as_category"], "default": "drop_row"}, "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.95}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "linear_weighted", "display_name": "线性加权 Kappa", "entry": "algorithms.kappa_agreement:run_linear", "description": "两位评价者的有序定类线性加权一致性。", "input": {"data_type": "table", "slots": [{"id": "rater_columns", "display_name": "有序评价变量", "type": "columns", "required": true, "min_items": 2, "max_items": 2, "allowed_data_types": ["integer", "number", "string", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}, {"id": "frequency_weight", "display_name": "频数权重", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["rater_columns", "frequency_weight"]}]}, "parameters_schema": {"type": "object", "properties": {"missing": {"type": "string", "enum": ["drop_row", "treat_as_category"], "default": "drop_row"}, "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.95}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "quadratic_weighted", "display_name": "平方加权 Kappa", "entry": "algorithms.kappa_agreement:run_quadratic", "description": "两位评价者的有序定类平方加权一致性。", "input": {"data_type": "table", "slots": [{"id": "rater_columns", "display_name": "有序评价变量", "type": "columns", "required": true, "min_items": 2, "max_items": 2, "allowed_data_types": ["integer", "number", "string", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}, {"id": "frequency_weight", "display_name": "频数权重", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["rater_columns", "frequency_weight"]}]}, "parameters_schema": {"type": "object", "properties": {"missing": {"type": "string", "enum": ["drop_row", "treat_as_category"], "default": "drop_row"}, "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.95}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "fleiss", "display_name": "Fleiss Kappa", "entry": "algorithms.kappa_agreement:run_fleiss", "description": "三位及以上评价者的无序定类一致性。", "input": {"data_type": "table", "slots": [{"id": "rater_columns", "display_name": "评价变量", "type": "columns", "required": true, "min_items": 3, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}, {"id": "frequency_weight", "display_name": "频数权重", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["rater_columns", "frequency_weight"]}]}, "parameters_schema": {"type": "object", "properties": {"missing": {"type": "string", "enum": ["drop_row", "treat_as_category"], "default": "drop_row"}, "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.95}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "kendall_w",
+      "display_name": "Kendall 一致性检验",
+      "category": "statistical_association",
+      "description": "计算多位评价者的 Kendall 协同系数 W。",
+      "methods": [
+        {"method_id": "concordance", "display_name": "Kendall's W", "entry": "algorithms.kendall_w:run", "description": "使用平均秩和并列秩修正。", "input": {"data_type": "table", "slots": [{"id": "rater_columns", "display_name": "评价变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": []}, "parameters_schema": {"type": "object", "properties": {"rank_direction": {"type": "string", "enum": ["ascending", "descending"], "default": "ascending"}, "alpha": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.05}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "canonical_correlation",
+      "display_name": "典型相关分析",
+      "category": "statistical_association",
+      "description": "分析两组定量变量之间的线性相关结构。",
+      "methods": [
+        {"method_id": "basic", "display_name": "典型相关", "entry": "algorithms.canonical_correlation:run", "description": "输出典型相关、载荷、冗余度和 Wilks Lambda 近似检验。", "input": {"data_type": "table", "slots": [{"id": "y_set", "display_name": "集合 Y", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}, {"id": "x_set", "display_name": "集合 X", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["x_set", "y_set"]}]}, "parameters_schema": {"type": "object", "properties": {"standardize": {"type": "boolean", "default": true}, "regularization": {"type": "number", "minimum": 0, "default": 0}, "n_components": {"oneOf": [{"type": "string", "enum": ["auto"]}, {"type": "integer", "minimum": 1}], "default": "auto"}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "poisson_goodness_of_fit",
+      "display_name": "泊松分布检验",
+      "category": "statistical_association",
+      "description": "检验非负整数计数是否符合泊松分布。",
+      "methods": [
+        {"method_id": "chi_square", "display_name": "卡方拟合优度", "entry": "algorithms.distribution_tests:run_poisson", "description": "合并低期望频数组后执行卡方近似检验。", "input": {"data_type": "table", "slots": [{"id": "count_column", "display_name": "计数变量", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"], "value_range": {"minimum": 0}}, {"id": "frequency_weight", "display_name": "频数权重", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"], "value_range": {"minimum": 0}}], "constraints": [{"type": "slots_disjoint", "slots": ["count_column", "frequency_weight"]}]}, "parameters_schema": {"type": "object", "properties": {"lambda_mode": {"type": "string", "enum": ["estimate", "fixed"], "default": "estimate"}, "lambda_value": {"type": "number", "exclusiveMinimum": 0, "default": 1}, "min_expected_count": {"type": "number", "exclusiveMinimum": 0, "default": 5}, "alpha": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.05}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "runs_test",
+      "display_name": "游程检验",
+      "category": "statistical_association",
+      "description": "检验序列的随机性。",
+      "methods": [
+        {"method_id": "median_cut", "display_name": "中位数切分", "entry": "algorithms.distribution_tests:run_runs_median", "description": "以每个定量字段的中位数二分序列。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量序列", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}, {"id": "order_column", "display_name": "顺序字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["x_columns", "order_column"]}]}, "parameters_schema": {"type": "object", "properties": {"ties": {"type": "string", "enum": ["drop", "lower", "upper"], "default": "drop"}, "alternative": {"type": "string", "enum": ["two_sided", "less", "greater"], "default": "two_sided"}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "custom_cut", "display_name": "自定义切分", "entry": "algorithms.distribution_tests:run_runs_custom", "description": "按用户阈值二分定量序列。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量序列", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}, {"id": "order_column", "display_name": "顺序字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["x_columns", "order_column"]}]}, "parameters_schema": {"type": "object", "properties": {"cut_value": {"type": "number", "default": 0}, "ties": {"type": "string", "enum": ["drop", "lower", "upper"], "default": "drop"}, "alternative": {"type": "string", "enum": ["two_sided", "less", "greater"], "default": "two_sided"}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "binary", "display_name": "二分类序列", "entry": "algorithms.distribution_tests:run_runs_binary", "description": "直接对恰含两个类别的序列检验。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "二分类序列", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"], "min_unique_values": 2, "max_unique_values": 2}, {"id": "order_column", "display_name": "顺序字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["x_columns", "order_column"]}, {"type": "exact_category_count", "slots": ["x_columns"], "value": 2}]}, "parameters_schema": {"type": "object", "properties": {"ties": {"type": "string", "enum": ["drop", "lower", "upper"], "default": "drop"}, "alternative": {"type": "string", "enum": ["two_sided", "less", "greater"], "default": "two_sided"}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    }
+  ]
+}

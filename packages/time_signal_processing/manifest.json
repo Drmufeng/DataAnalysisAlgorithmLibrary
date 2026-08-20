@@ -1,0 +1,103 @@
+{
+  "protocol_version": "1.0",
+  "package_id": "time_signal_processing",
+  "package_name": "时序与信号处理算法包",
+  "version": "0.1.0",
+  "publisher": "项目组",
+  "description": "提供单变量滑窗转换和三种降采样方法。",
+  "runtime": {"python": ">=3.11,<3.13", "dependencies": [
+    {"name": "pandas", "version": ">=2.2,<3.0"},
+    {"name": "numpy", "version": ">=1.26,<3.0"},
+    {"name": "scipy", "version": ">=1.13,<2.0"},
+    {"name": "pydantic", "version": ">=2.8,<3.0"}
+  ]},
+  "algorithms": [
+    {
+      "algorithm_id": "time_series_window",
+      "display_name": "时序数据滑窗转换",
+      "category": "time_signal_processing",
+      "description": "按稳定顺序把一个定量序列展开为窗口特征和可选预测目标。",
+      "methods": [
+        {
+          "method_id": "sliding",
+          "display_name": "滑动窗口",
+          "entry": "algorithms.time_series_window:run",
+          "description": "使用窗口大小和步阶生成新的监督学习样本表。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "value_column", "display_name": "定量序列", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
+            {"id": "order_column", "display_name": "顺序或时间字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+          ], "constraints": [{"type": "slots_disjoint", "slots": ["value_column", "order_column"]}]},
+          "parameters_schema": {"type": "object", "properties": {
+            "window_size": {"type": "integer", "minimum": 1, "maximum": 10000, "default": 3},
+            "step_size": {"type": "integer", "minimum": 1, "maximum": 10000, "default": 1},
+            "output_mode": {"type": "string", "enum": ["supervised", "features"], "default": "supervised"},
+            "forecast_horizon": {"type": "integer", "minimum": 1, "maximum": 10000, "default": 1},
+            "include_incomplete": {"type": "boolean", "default": false},
+            "flatten_output": {"type": "boolean", "enum": [true], "default": true},
+            "duplicate_order": {"type": "string", "enum": ["error", "first", "last"], "default": "error"}
+          }, "additionalProperties": false},
+          "output": {"data_type": "table", "produces_data_version": true},
+          "deterministic": true
+        }
+      ]
+    },
+    {
+      "algorithm_id": "data_downsampling",
+      "display_name": "数据降采样",
+      "category": "time_signal_processing",
+      "description": "按顺序直接抽取、分块汇总或先滤波再抽取。",
+      "methods": [
+        {
+          "method_id": "periodic_sample",
+          "display_name": "直接采样",
+          "entry": "algorithms.data_downsampling:run_periodic_sample",
+          "description": "每隔固定数量保留一条完整记录。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "value_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
+            {"id": "order_column", "display_name": "顺序字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+          ], "constraints": [{"type": "slots_disjoint", "slots": ["value_columns", "order_column"]}]},
+          "parameters_schema": {"type": "object", "properties": {
+            "factor": {"type": "integer", "minimum": 2, "maximum": 10000, "default": 2},
+            "offset": {"type": "integer", "minimum": 0, "maximum": 9999, "default": 0}
+          }, "additionalProperties": false},
+          "output": {"data_type": "table", "produces_data_version": true},
+          "deterministic": true
+        },
+        {
+          "method_id": "block_aggregate",
+          "display_name": "稀释采样",
+          "entry": "algorithms.data_downsampling:run_block_aggregate",
+          "description": "按连续样本块对定量字段汇总。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "value_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
+            {"id": "order_column", "display_name": "顺序字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+          ], "constraints": [{"type": "slots_disjoint", "slots": ["value_columns", "order_column"]}]},
+          "parameters_schema": {"type": "object", "properties": {
+            "factor": {"type": "integer", "minimum": 2, "maximum": 10000, "default": 2},
+            "aggregation": {"type": "string", "enum": ["first", "last", "mean", "median", "min", "max", "sum"], "default": "mean"},
+            "other_columns": {"type": "string", "enum": ["drop", "first", "last"], "default": "drop"}
+          }, "additionalProperties": false},
+          "output": {"data_type": "table", "produces_data_version": true},
+          "deterministic": true
+        },
+        {
+          "method_id": "filtered_decimate",
+          "display_name": "滤波降采样",
+          "entry": "algorithms.data_downsampling:run_filtered_decimate",
+          "description": "对等间隔信号低通滤波后按整数因子抽取。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "value_columns", "display_name": "定量信号", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"], "allow_missing": false, "finite_only": true},
+            {"id": "order_column", "display_name": "等间隔顺序字段", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "datetime"], "allowed_analysis_types": ["categorical", "quantitative"], "allow_missing": false}
+          ], "constraints": [{"type": "slots_disjoint", "slots": ["value_columns", "order_column"]}, {"type": "equal_interval", "slots": ["order_column"]}]},
+          "parameters_schema": {"type": "object", "properties": {
+            "factor": {"type": "integer", "minimum": 2, "maximum": 1000, "default": 2},
+            "filter_type": {"type": "string", "enum": ["iir", "fir"], "default": "iir"},
+            "zero_phase": {"type": "boolean", "default": true}
+          }, "additionalProperties": false},
+          "output": {"data_type": "table", "produces_data_version": true},
+          "deterministic": true
+        }
+      ]
+    }
+  ]
+}

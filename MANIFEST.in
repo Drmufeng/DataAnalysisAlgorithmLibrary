@@ -1,0 +1,6 @@
+include 项目说明.md
+recursive-include docs *.md
+recursive-include examples *.py *.json
+recursive-include tests *.py
+recursive-include packages *.json *.txt *.md *.py
+

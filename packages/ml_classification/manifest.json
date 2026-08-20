@@ -1,0 +1,37 @@
+{
+  "protocol_version": "1.0",
+  "package_id": "ml_classification",
+  "package_name": "机器学习分类算法包",
+  "version": "0.1.0",
+  "publisher": "项目组",
+  "description": "提供二项逻辑回归和高斯、类别、混合朴素贝叶斯分类。",
+  "runtime": {"python": ">=3.11,<3.13", "dependencies": [
+    {"name": "pandas", "version": ">=2.2,<3.0"},
+    {"name": "numpy", "version": ">=1.26,<3.0"},
+    {"name": "scipy", "version": ">=1.13,<2.0"},
+    {"name": "scikit-learn", "version": ">=1.5,<2.0"},
+    {"name": "pydantic", "version": ">=2.8,<3.0"}
+  ]},
+  "algorithms": [
+    {
+      "algorithm_id": "logistic_regression",
+      "display_name": "逻辑回归",
+      "category": "ml_classification",
+      "description": "对二分类因变量建立带正则化的逻辑回归分类模型。",
+      "methods": [
+        {"method_id": "binary_gradient_descent", "display_name": "二项逻辑回归", "entry": "algorithms.classification:run_logistic", "description": "定类自变量受控独热编码，输出系数、优势比、分类指标和曲线。", "input": {"data_type": "table", "slots": [{"id": "y_column", "display_name": "分类因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"], "min_unique_values": 2, "max_unique_values": 2}, {"id": "x_columns", "display_name": "自变量 X", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "x_columns"]}, {"type": "exact_category_count", "slots": ["y_column"], "value": 2}]}, "parameters_schema": {"type": "object", "properties": {"train_ratio": {"type": "number", "minimum": 0.5, "maximum": 0.95, "default": 0.8}, "shuffle": {"type": "boolean", "default": true}, "cv_folds": {"type": "integer", "enum": [0, 3, 4, 5], "default": 0}, "standardize_numeric": {"type": "boolean", "default": true}, "regularization": {"type": "string", "enum": ["none", "l1", "l2"], "default": "l2"}, "c": {"type": "number", "exclusiveMinimum": 0, "default": 1}, "max_iter": {"type": "integer", "minimum": 100, "maximum": 100000, "default": 1000}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "naive_bayes_classification",
+      "display_name": "朴素贝叶斯分类",
+      "category": "ml_classification",
+      "description": "按自变量类型提供高斯、类别和混合条件分布模型。",
+      "methods": [
+        {"method_id": "gaussian", "display_name": "高斯朴素贝叶斯", "entry": "algorithms.classification:run_gaussian_nb", "description": "全部自变量必须为定量变量。", "input": {"data_type": "table", "slots": [{"id": "y_column", "display_name": "分类因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"], "min_unique_values": 2}, {"id": "x_columns", "display_name": "定量自变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "x_columns"]}]}, "parameters_schema": {"type": "object", "properties": {"train_ratio": {"type": "number", "minimum": 0.5, "maximum": 0.95, "default": 0.8}, "shuffle": {"type": "boolean", "default": true}, "var_smoothing": {"type": "number", "exclusiveMinimum": 0, "default": 1e-9}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "categorical", "display_name": "类别朴素贝叶斯", "entry": "algorithms.classification:run_categorical_nb", "description": "全部自变量必须为定类变量。", "input": {"data_type": "table", "slots": [{"id": "y_column", "display_name": "分类因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"], "min_unique_values": 2}, {"id": "x_columns", "display_name": "定类自变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"]}], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "x_columns"]}]}, "parameters_schema": {"type": "object", "properties": {"train_ratio": {"type": "number", "minimum": 0.5, "maximum": 0.95, "default": 0.8}, "shuffle": {"type": "boolean", "default": true}, "alpha": {"type": "number", "minimum": 0, "default": 1}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "mixed", "display_name": "混合朴素贝叶斯", "entry": "algorithms.classification:run_mixed_nb", "description": "同时使用高斯定量特征和离散定类特征。", "input": {"data_type": "table", "slots": [{"id": "y_column", "display_name": "分类因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"], "min_unique_values": 2}, {"id": "x_columns", "display_name": "自变量 X", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "x_columns"]}]}, "parameters_schema": {"type": "object", "properties": {"train_ratio": {"type": "number", "minimum": 0.5, "maximum": 0.95, "default": 0.8}, "alpha": {"type": "number", "minimum": 0, "default": 1}, "var_smoothing": {"type": "number", "exclusiveMinimum": 0, "default": 1e-9}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    }
+  ]
+}

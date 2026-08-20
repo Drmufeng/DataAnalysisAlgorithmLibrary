@@ -1,0 +1,51 @@
+{
+  "protocol_version": "1.0",
+  "package_id": "lightgbm_classification",
+  "package_name": "LightGBM 分类算法包",
+  "version": "0.1.0",
+  "publisher": "项目组",
+  "description": "提供二分类和多分类 LightGBM，输出分类评估、概率和特征重要性。",
+  "runtime": {"python": ">=3.11,<3.13", "dependencies": [
+    {"name": "pandas", "version": ">=2.2,<3.0"},
+    {"name": "numpy", "version": ">=1.26,<3.0"},
+    {"name": "scikit-learn", "version": ">=1.5,<2.0"},
+    {"name": "lightgbm", "version": ">=4.5,<5.0"},
+    {"name": "pydantic", "version": ">=2.8,<3.0"}
+  ]},
+  "algorithms": [
+    {
+      "algorithm_id": "lightgbm_classification",
+      "display_name": "LightGBM 分类",
+      "category": "ml_classification",
+      "description": "自动识别二分类或多分类目标，定类自变量采用受控编码。",
+      "methods": [
+        {
+          "method_id": "standard",
+          "display_name": "标准 LightGBM 分类",
+          "entry": "algorithms.lightgbm_classification:run",
+          "description": "使用可复现分层划分，返回混淆矩阵、分类报告、预测概率和特征重要性。",
+          "input": {"data_type": "table", "slots": [
+            {"id": "y_column", "display_name": "分类因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical"], "min_unique_values": 2},
+            {"id": "x_columns", "display_name": "自变量 X", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+          ], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "x_columns"]}]},
+          "parameters_schema": {"type": "object", "properties": {
+            "objective": {"type": "string", "enum": ["auto", "binary", "multiclass"], "default": "auto"},
+            "train_ratio": {"type": "number", "minimum": 0.5, "maximum": 0.95, "default": 0.8},
+            "n_estimators": {"type": "integer", "minimum": 1, "maximum": 10000, "default": 200},
+            "learning_rate": {"type": "number", "exclusiveMinimum": 0, "maximum": 1, "default": 0.05},
+            "num_leaves": {"type": "integer", "minimum": 2, "maximum": 4096, "default": 31},
+            "max_depth": {"type": "integer", "minimum": -1, "maximum": 100, "default": -1},
+            "min_child_samples": {"type": "integer", "minimum": 1, "default": 20},
+            "subsample": {"type": "number", "exclusiveMinimum": 0, "maximum": 1, "default": 1},
+            "colsample_bytree": {"type": "number", "exclusiveMinimum": 0, "maximum": 1, "default": 1},
+            "reg_alpha": {"type": "number", "minimum": 0, "default": 0},
+            "reg_lambda": {"type": "number", "minimum": 0, "default": 0},
+            "n_jobs": {"type": "integer", "minimum": 1, "maximum": 64, "default": 1}
+          }, "additionalProperties": false},
+          "output": {"data_type": "analysis_result", "produces_data_version": false, "result_blocks": ["metrics", "tables", "charts", "warnings", "metadata"]},
+          "deterministic": true
+        }
+      ]
+    }
+  ]
+}

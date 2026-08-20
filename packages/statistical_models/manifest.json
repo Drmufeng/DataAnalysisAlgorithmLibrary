@@ -1,0 +1,72 @@
+{
+  "protocol_version": "1.0",
+  "package_id": "statistical_models",
+  "package_name": "统计建模、预测与降维算法包",
+  "version": "0.1.0",
+  "publisher": "项目组",
+  "description": "提供线性模型、岭回归、分层回归、GM(1,1) 和主成分分析。",
+  "runtime": {"python": ">=3.11,<3.13", "dependencies": [
+    {"name": "pandas", "version": ">=2.2,<3.0"},
+    {"name": "numpy", "version": ">=1.26,<3.0"},
+    {"name": "scipy", "version": ">=1.13,<2.0"},
+    {"name": "scikit-learn", "version": ">=1.5,<2.0"},
+    {"name": "statsmodels", "version": ">=0.14,<1.0"},
+    {"name": "pydantic", "version": ">=2.8,<3.0"}
+  ]},
+  "algorithms": [
+    {
+      "algorithm_id": "linear_regression",
+      "display_name": "线性回归（最小二乘法）",
+      "category": "statistical_models",
+      "description": "使用 OLS 估计定量因变量和一个或多个自变量之间的线性关系。",
+      "methods": [
+        {"method_id": "ols", "display_name": "普通最小二乘", "entry": "algorithms.linear_models:run_ols", "description": "定类自变量受控独热编码，并输出系数、显著性和残差诊断。", "input": {"data_type": "table", "slots": [{"id": "y_column", "display_name": "因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}, {"id": "x_columns", "display_name": "自变量 X", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "x_columns"]}]}, "parameters_schema": {"type": "object", "properties": {"include_intercept": {"type": "boolean", "default": true}, "standardize_x": {"type": "boolean", "default": false}, "confidence_level": {"type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 1, "default": 0.95}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "ridge_regression",
+      "display_name": "岭回归（Ridge）",
+      "category": "statistical_models",
+      "description": "通过 L2 惩罚缓解多重共线性。",
+      "methods": [
+        {"method_id": "fixed_alpha", "display_name": "固定 K 值", "entry": "algorithms.linear_models:run_ridge_fixed", "description": "使用用户指定的非负 Alpha 拟合岭回归。", "input": {"data_type": "table", "slots": [{"id": "y_column", "display_name": "因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}, {"id": "x_columns", "display_name": "自变量 X", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "x_columns"]}]}, "parameters_schema": {"type": "object", "properties": {"alpha": {"type": "number", "minimum": 0, "default": 1}, "include_intercept": {"type": "boolean", "default": true}, "standardize_x": {"type": "boolean", "default": true}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "cross_validated", "display_name": "自动选择 K 值", "entry": "algorithms.linear_models:run_ridge_cv", "description": "使用 K 折交叉验证在候选 Alpha 中选择均方误差最小者。", "input": {"data_type": "table", "slots": [{"id": "y_column", "display_name": "因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}, {"id": "x_columns", "display_name": "自变量 X", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "x_columns"]}]}, "parameters_schema": {"type": "object", "properties": {"alpha_grid": {"type": "array", "items": {"type": "number", "minimum": 0}, "minItems": 1, "uniqueItems": true, "default": [0.01, 0.1, 1, 10, 100]}, "cv_folds": {"type": "integer", "minimum": 2, "maximum": 20, "default": 5}, "include_intercept": {"type": "boolean", "default": true}, "standardize_x": {"type": "boolean", "default": true}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "hierarchical_regression",
+      "display_name": "分层回归",
+      "category": "statistical_models",
+      "description": "按用户定义的层次逐步加入自变量并比较 R² 变化。",
+      "methods": [
+        {"method_id": "blockwise_ols", "display_name": "分层最小二乘", "entry": "algorithms.linear_models:run_hierarchical", "description": "第一层可作为控制层，后续层按顺序累计进入模型。", "input": {"data_type": "table", "slots": [
+          {"id": "y_column", "display_name": "因变量 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
+          {"id": "block_1", "display_name": "控制层", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]},
+          {"id": "block_2", "display_name": "层次 1", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]},
+          {"id": "block_3", "display_name": "层次 2", "type": "columns", "required": false, "min_items": 0, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]},
+          {"id": "block_4", "display_name": "层次 3", "type": "columns", "required": false, "min_items": 0, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]},
+          {"id": "block_5", "display_name": "层次 4", "type": "columns", "required": false, "min_items": 0, "allowed_data_types": ["integer", "number", "string", "boolean", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+        ], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "block_1", "block_2", "block_3", "block_4", "block_5"]}]}, "parameters_schema": {"type": "object", "properties": {"include_intercept": {"type": "boolean", "default": true}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "grey_forecast_gm11",
+      "display_name": "灰色预测模型 GM(1,1)",
+      "category": "statistical_models",
+      "description": "面向小样本非负时间序列的灰色预测。",
+      "methods": [
+        {"method_id": "basic", "display_name": "GM(1,1)", "entry": "algorithms.grey_forecast_gm11:run", "description": "包含级比检验、可选自动平移、样本内拟合和向后预测。", "input": {"data_type": "table", "slots": [{"id": "y_column", "display_name": "时间序列 Y", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"], "allow_missing": false, "finite_only": true}, {"id": "time_column", "display_name": "时间项", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical"], "unique_values": true}], "constraints": [{"type": "slots_disjoint", "slots": ["y_column", "time_column"]}, {"type": "min_rows", "slots": [], "value": 4}]}, "parameters_schema": {"type": "object", "properties": {"forecast_steps": {"type": "integer", "minimum": 1, "maximum": 1000, "default": 1}, "background_value_coefficient": {"type": "number", "minimum": 0, "maximum": 1, "default": 0.5}, "translation_mode": {"type": "string", "enum": ["auto", "none"], "default": "auto"}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    },
+    {
+      "algorithm_id": "principal_component_analysis",
+      "display_name": "主成分分析（PCA）",
+      "category": "statistical_models",
+      "description": "通过固定主成分数或特征根阈值完成线性降维。",
+      "methods": [
+        {"method_id": "fixed_components", "display_name": "指定主成分数", "entry": "algorithms.principal_component_analysis:run_fixed", "description": "保留用户指定数量的主成分。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}, {"id": "row_index", "display_name": "行索引", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical"]}], "constraints": [{"type": "slots_disjoint", "slots": ["x_columns", "row_index"]}]}, "parameters_schema": {"type": "object", "properties": {"n_components": {"type": "integer", "minimum": 1, "default": 2}, "missing": {"type": "string", "enum": ["listwise", "mean_impute"], "default": "listwise"}, "standardize": {"type": "boolean", "default": true}, "rotation": {"type": "string", "enum": ["none", "varimax"], "default": "none"}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true},
+        {"method_id": "eigenvalue_threshold", "display_name": "特征根阈值", "entry": "algorithms.principal_component_analysis:run_threshold", "description": "保留特征根不低于阈值的主成分。", "input": {"data_type": "table", "slots": [{"id": "x_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 2, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]}, {"id": "row_index", "display_name": "行索引", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical"]}], "constraints": [{"type": "slots_disjoint", "slots": ["x_columns", "row_index"]}]}, "parameters_schema": {"type": "object", "properties": {"eigenvalue_threshold": {"type": "number", "exclusiveMinimum": 0, "default": 1}, "missing": {"type": "string", "enum": ["listwise", "mean_impute"], "default": "listwise"}, "standardize": {"type": "boolean", "default": true}, "rotation": {"type": "string", "enum": ["none", "varimax"], "default": "none"}}, "additionalProperties": false}, "output": {"data_type": "analysis_result", "produces_data_version": false}, "deterministic": true}
+      ]
+    }
+  ]
+}
