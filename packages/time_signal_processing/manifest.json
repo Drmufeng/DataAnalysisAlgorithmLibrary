@@ -1,10 +1,12 @@
 {
-  "protocol_version": "1.0",
+  "protocol_version": "1.1",
   "package_id": "time_signal_processing",
   "package_name": "时序与信号处理算法包",
-  "version": "0.1.0",
+  "package_name_en": "Time-series and Signal Processing Algorithm Package",
+  "version": "0.2.0",
   "publisher": "项目组",
   "description": "提供单变量滑窗转换和三种降采样方法。",
+  "description_en": "Provides univariate sliding-window conversion and three downsampling methods.",
   "runtime": {"python": ">=3.11,<3.13", "dependencies": [
     {"name": "pandas", "version": ">=2.2,<3.0"},
     {"name": "numpy", "version": ">=1.26,<3.0"},
@@ -15,26 +17,32 @@
     {
       "algorithm_id": "time_series_window",
       "display_name": "时序数据滑窗转换",
+      "display_name_en": "Time-series Sliding-window Conversion",
       "category": "time_signal_processing",
+      "category_display_name": "时序与信号处理",
+      "category_display_name_en": "Time-series and Signal Processing",
       "description": "按稳定顺序把一个定量序列展开为窗口特征和可选预测目标。",
+      "description_en": "Expands one quantitative sequence into window features and an optional forecast target in stable order.",
       "methods": [
         {
           "method_id": "sliding",
           "display_name": "滑动窗口",
+          "display_name_en": "Sliding Window",
           "entry": "algorithms.time_series_window:run",
           "description": "使用窗口大小和步阶生成新的监督学习样本表。",
+          "description_en": "Creates a new supervised-learning sample table using a window size and step size.",
           "input": {"data_type": "table", "slots": [
-            {"id": "value_column", "display_name": "定量序列", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
-            {"id": "order_column", "display_name": "顺序或时间字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+            {"id": "value_column", "display_name": "定量序列", "display_name_en": "Quantitative Series", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
+            {"id": "order_column", "display_name": "顺序或时间字段", "display_name_en": "Order or Time Variable", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
           ], "constraints": [{"type": "slots_disjoint", "slots": ["value_column", "order_column"]}]},
           "parameters_schema": {"type": "object", "properties": {
-            "window_size": {"type": "integer", "minimum": 1, "maximum": 10000, "default": 3},
-            "step_size": {"type": "integer", "minimum": 1, "maximum": 10000, "default": 1},
-            "output_mode": {"type": "string", "enum": ["supervised", "features"], "default": "supervised"},
-            "forecast_horizon": {"type": "integer", "minimum": 1, "maximum": 10000, "default": 1},
-            "include_incomplete": {"type": "boolean", "default": false},
-            "flatten_output": {"type": "boolean", "enum": [true], "default": true},
-            "duplicate_order": {"type": "string", "enum": ["error", "first", "last"], "default": "error"}
+            "window_size": {"type": "integer", "title": "窗口大小", "x-title-en": "Window Size", "description": "每个样本包含的连续观测数量。", "x-description-en": "Number of consecutive observations in each sample.", "minimum": 1, "maximum": 10000, "default": 3},
+            "step_size": {"type": "integer", "title": "步阶", "x-title-en": "Step Size", "description": "相邻窗口起点之间的样本间隔。", "x-description-en": "Sample interval between the starting points of adjacent windows.", "minimum": 1, "maximum": 10000, "default": 1},
+            "output_mode": {"type": "string", "title": "输出模式", "x-title-en": "Output Mode", "enum": ["supervised", "features"], "oneOf": [{"const": "supervised", "title": "特征与预测目标", "x-title-en": "Features and Target"}, {"const": "features", "title": "仅窗口特征", "x-title-en": "Window Features Only"}], "default": "supervised"},
+            "forecast_horizon": {"type": "integer", "title": "预测步长", "x-title-en": "Forecast Horizon", "description": "预测目标相对窗口末端向后的单位数。", "x-description-en": "Number of units from the window end to the target.", "x-visible-when": {"field": "output_mode", "equals": "supervised"}, "minimum": 1, "maximum": 10000, "default": 1},
+            "include_incomplete": {"type": "boolean", "title": "保留不完整窗口", "x-title-en": "Include Incomplete Windows", "description": "开启后保留末尾不足一个完整窗口的数据。", "x-description-en": "Keeps trailing observations that do not fill a complete window.", "default": false},
+            "flatten_output": {"type": "boolean", "title": "展开输出字段", "x-title-en": "Flatten Output Fields", "enum": [true], "oneOf": [{"const": true, "title": "展开", "x-title-en": "Flatten"}], "default": true},
+            "duplicate_order": {"type": "string", "title": "重复顺序值处理", "x-title-en": "Duplicate Order Values", "enum": ["error", "first", "last"], "oneOf": [{"const": "error", "title": "停止并报错", "x-title-en": "Stop with Error"}, {"const": "first", "title": "保留首条", "x-title-en": "Keep First"}, {"const": "last", "title": "保留末条", "x-title-en": "Keep Last"}], "default": "error"}
           }, "additionalProperties": false},
           "output": {"data_type": "table", "produces_data_version": true},
           "deterministic": true
@@ -44,21 +52,27 @@
     {
       "algorithm_id": "data_downsampling",
       "display_name": "数据降采样",
+      "display_name_en": "Data Downsampling",
       "category": "time_signal_processing",
+      "category_display_name": "时序与信号处理",
+      "category_display_name_en": "Time-series and Signal Processing",
       "description": "按顺序直接抽取、分块汇总或先滤波再抽取。",
+      "description_en": "Downsamples ordered data by periodic selection, block aggregation, or filtering before decimation.",
       "methods": [
         {
           "method_id": "periodic_sample",
           "display_name": "直接采样",
+          "display_name_en": "Periodic Sampling",
           "entry": "algorithms.data_downsampling:run_periodic_sample",
           "description": "每隔固定数量保留一条完整记录。",
+          "description_en": "Keeps one complete record at a fixed interval.",
           "input": {"data_type": "table", "slots": [
-            {"id": "value_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
-            {"id": "order_column", "display_name": "顺序字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+            {"id": "value_columns", "display_name": "定量变量", "display_name_en": "Quantitative Variables", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
+            {"id": "order_column", "display_name": "顺序字段", "display_name_en": "Order Variable", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
           ], "constraints": [{"type": "slots_disjoint", "slots": ["value_columns", "order_column"]}]},
           "parameters_schema": {"type": "object", "properties": {
-            "factor": {"type": "integer", "minimum": 2, "maximum": 10000, "default": 2},
-            "offset": {"type": "integer", "minimum": 0, "maximum": 9999, "default": 0}
+            "factor": {"type": "integer", "title": "降采样因子", "x-title-en": "Downsampling Factor", "description": "每隔多少条记录保留一条。", "x-description-en": "Keeps one record for every N input records.", "minimum": 2, "maximum": 10000, "default": 2},
+            "offset": {"type": "integer", "title": "采样起始位置", "x-title-en": "Sampling Offset", "description": "从第几个位置开始周期采样，首个位置为 0。", "x-description-en": "Zero-based position at which periodic sampling begins.", "minimum": 0, "maximum": 9999, "default": 0}
           }, "additionalProperties": false},
           "output": {"data_type": "table", "produces_data_version": true},
           "deterministic": true
@@ -66,16 +80,18 @@
         {
           "method_id": "block_aggregate",
           "display_name": "稀释采样",
+          "display_name_en": "Block Aggregation",
           "entry": "algorithms.data_downsampling:run_block_aggregate",
           "description": "按连续样本块对定量字段汇总。",
+          "description_en": "Aggregates quantitative variables over consecutive blocks of samples.",
           "input": {"data_type": "table", "slots": [
-            {"id": "value_columns", "display_name": "定量变量", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
-            {"id": "order_column", "display_name": "顺序字段", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
+            {"id": "value_columns", "display_name": "定量变量", "display_name_en": "Quantitative Variables", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"]},
+            {"id": "order_column", "display_name": "顺序字段", "display_name_en": "Order Variable", "type": "column", "required": false, "min_items": 0, "max_items": 1, "allowed_data_types": ["integer", "number", "string", "datetime", "category"], "allowed_analysis_types": ["categorical", "quantitative"]}
           ], "constraints": [{"type": "slots_disjoint", "slots": ["value_columns", "order_column"]}]},
           "parameters_schema": {"type": "object", "properties": {
-            "factor": {"type": "integer", "minimum": 2, "maximum": 10000, "default": 2},
-            "aggregation": {"type": "string", "enum": ["first", "last", "mean", "median", "min", "max", "sum"], "default": "mean"},
-            "other_columns": {"type": "string", "enum": ["drop", "first", "last"], "default": "drop"}
+            "factor": {"type": "integer", "title": "分块大小", "x-title-en": "Block Size", "description": "每个汇总块包含的连续样本数量。", "x-description-en": "Number of consecutive samples in each aggregation block.", "minimum": 2, "maximum": 10000, "default": 2},
+            "aggregation": {"type": "string", "title": "汇总方法", "x-title-en": "Aggregation Method", "enum": ["first", "last", "mean", "median", "min", "max", "sum"], "oneOf": [{"const": "first", "title": "首值", "x-title-en": "First"}, {"const": "last", "title": "末值", "x-title-en": "Last"}, {"const": "mean", "title": "均值", "x-title-en": "Mean"}, {"const": "median", "title": "中位数", "x-title-en": "Median"}, {"const": "min", "title": "最小值", "x-title-en": "Minimum"}, {"const": "max", "title": "最大值", "x-title-en": "Maximum"}, {"const": "sum", "title": "求和", "x-title-en": "Sum"}], "default": "mean"},
+            "other_columns": {"type": "string", "title": "其他变量处理", "x-title-en": "Other Variables", "enum": ["drop", "first", "last"], "oneOf": [{"const": "drop", "title": "不输出", "x-title-en": "Drop"}, {"const": "first", "title": "保留块内首值", "x-title-en": "Keep First in Block"}, {"const": "last", "title": "保留块内末值", "x-title-en": "Keep Last in Block"}], "default": "drop"}
           }, "additionalProperties": false},
           "output": {"data_type": "table", "produces_data_version": true},
           "deterministic": true
@@ -83,16 +99,18 @@
         {
           "method_id": "filtered_decimate",
           "display_name": "滤波降采样",
+          "display_name_en": "Filtered Decimation",
           "entry": "algorithms.data_downsampling:run_filtered_decimate",
           "description": "对等间隔信号低通滤波后按整数因子抽取。",
+          "description_en": "Low-pass filters equally spaced signals before integer-factor decimation.",
           "input": {"data_type": "table", "slots": [
-            {"id": "value_columns", "display_name": "定量信号", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"], "allow_missing": false, "finite_only": true},
-            {"id": "order_column", "display_name": "等间隔顺序字段", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "datetime"], "allowed_analysis_types": ["categorical", "quantitative"], "allow_missing": false}
+            {"id": "value_columns", "display_name": "定量信号", "display_name_en": "Quantitative Signals", "type": "columns", "required": true, "min_items": 1, "allowed_data_types": ["integer", "number"], "allowed_analysis_types": ["quantitative"], "allow_missing": false, "finite_only": true},
+            {"id": "order_column", "display_name": "等间隔顺序字段", "display_name_en": "Equally Spaced Order Variable", "type": "column", "required": true, "min_items": 1, "max_items": 1, "allowed_data_types": ["integer", "number", "datetime"], "allowed_analysis_types": ["categorical", "quantitative"], "allow_missing": false}
           ], "constraints": [{"type": "slots_disjoint", "slots": ["value_columns", "order_column"]}, {"type": "equal_interval", "slots": ["order_column"]}]},
           "parameters_schema": {"type": "object", "properties": {
-            "factor": {"type": "integer", "minimum": 2, "maximum": 1000, "default": 2},
-            "filter_type": {"type": "string", "enum": ["iir", "fir"], "default": "iir"},
-            "zero_phase": {"type": "boolean", "default": true}
+            "factor": {"type": "integer", "title": "降采样因子", "x-title-en": "Downsampling Factor", "description": "滤波后每隔多少条记录保留一条。", "x-description-en": "Keeps one filtered record for every N input records.", "minimum": 2, "maximum": 1000, "default": 2},
+            "filter_type": {"type": "string", "title": "滤波器类型", "x-title-en": "Filter Type", "enum": ["iir", "fir"], "oneOf": [{"const": "iir", "title": "无限冲激响应滤波器", "x-title-en": "Infinite Impulse Response (IIR)"}, {"const": "fir", "title": "有限冲激响应滤波器", "x-title-en": "Finite Impulse Response (FIR)"}], "default": "iir"},
+            "zero_phase": {"type": "boolean", "title": "零相位滤波", "x-title-en": "Zero-phase Filtering", "description": "开启后减少滤波造成的相位偏移。", "x-description-en": "Reduces phase shift introduced by filtering.", "default": true}
           }, "additionalProperties": false},
           "output": {"data_type": "table", "produces_data_version": true},
           "deterministic": true

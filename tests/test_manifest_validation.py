@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import shutil
 from pathlib import Path
 
@@ -43,3 +44,19 @@ def test_manifest_missing_required_file_is_reported(tmp_path: Path) -> None:
     report = validate_package(copied_package, check_dependencies=False)
     assert not report.is_valid
     assert any(issue.code == "REQUIRED_FILE_MISSING" for issue in report.issues)
+
+
+def test_protocol_1_1_requires_bilingual_display_metadata(tmp_path: Path) -> None:
+    """新版协议缺少界面展示元数据时应在导入校验阶段明确报错。"""
+
+    copied_package = tmp_path / "descriptive_analysis"
+    shutil.copytree(PACKAGE_DIR, copied_package)
+    manifest_path = copied_package / "manifest.json"
+    payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    payload["protocol_version"] = "1.1"
+    manifest_path.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+
+    report = validate_package(copied_package, check_dependencies=False)
+
+    assert not report.is_valid
+    assert any(issue.code == "DISPLAY_METADATA_MISSING" for issue in report.issues)

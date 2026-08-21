@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "data-analysis-algorithm-library"
-version = "0.1.0"
+version = "0.2.0"
 description = "数据处理与可视化分析系统的独立算法库"
 readme = "项目说明.md"
 requires-python = ">=3.11,<3.13"

@@ -259,6 +259,7 @@ class InputSlot(StrictModel):
 
     id: str
     display_name: str
+    display_name_en: str | None = None
     type: Literal["column", "columns"]
     required: bool
     min_items: int = Field(default=0, ge=0)
@@ -352,8 +353,10 @@ class MethodManifest(StrictModel):
 
     method_id: str
     display_name: str
+    display_name_en: str | None = None
     entry: str
     description: str
+    description_en: str | None = None
     input: InputSpec
     parameters_schema: dict[str, JsonValue]
     output: dict[str, JsonValue]
@@ -383,8 +386,12 @@ class AlgorithmManifest(StrictModel):
 
     algorithm_id: str
     display_name: str
+    display_name_en: str | None = None
     category: str
+    category_display_name: str | None = None
+    category_display_name_en: str | None = None
     description: str
+    description_en: str | None = None
     methods: list[MethodManifest] = Field(min_length=1)
 
     @field_validator("algorithm_id")
@@ -412,9 +419,11 @@ class PackageManifest(StrictModel):
     protocol_version: str
     package_id: str
     package_name: str
+    package_name_en: str | None = None
     version: str
     publisher: str
     description: str
+    description_en: str | None = None
     runtime: RuntimeSpec
     algorithms: list[AlgorithmManifest] = Field(min_length=1)
 

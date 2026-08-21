@@ -100,6 +100,7 @@ def validate_package(
     report.package_id = manifest.package_id
     report.version = manifest.version
     _validate_runtime(manifest, report, check_dependencies=check_dependencies)
+    _validate_display_metadata(manifest, report)
     for algorithm in manifest.algorithms:
         for method in algorithm.methods:
             operation_key = f"{algorithm.algorithm_id}.{method.method_id}"
@@ -224,6 +225,120 @@ def _validate_parameter_schema(
             f"参数 Schema 不合法：{exc.message}",
             f"{operation_key}.parameters_schema",
         )
+
+
+def _validate_display_metadata(
+    manifest: PackageManifest,
+    report: ValidationReport,
+) -> None:
+    """协议 1.1 起强制提供通用前端渲染所需的中英文展示元数据。"""
+
+    try:
+        protocol_minor = int(manifest.protocol_version.split(".", maxsplit=1)[1])
+    except (IndexError, ValueError):
+        return
+    if protocol_minor < 1:
+        return
+
+    package_fields = {
+        "package_name_en": manifest.package_name_en,
+        "description_en": manifest.description_en,
+    }
+    for field_name, value in package_fields.items():
+        if not value:
+            report.add_error(
+                "DISPLAY_METADATA_MISSING",
+                f"协议 1.1 算法包缺少 {field_name}",
+                field_name,
+            )
+
+    for algorithm in manifest.algorithms:
+        algorithm_location = algorithm.algorithm_id
+        algorithm_fields = {
+            "display_name_en": algorithm.display_name_en,
+            "category_display_name": algorithm.category_display_name,
+            "category_display_name_en": algorithm.category_display_name_en,
+            "description_en": algorithm.description_en,
+        }
+        for field_name, value in algorithm_fields.items():
+            if not value:
+                report.add_error(
+                    "DISPLAY_METADATA_MISSING",
+                    f"算法 {algorithm.algorithm_id} 缺少 {field_name}",
+                    f"{algorithm_location}.{field_name}",
+                )
+        for method in algorithm.methods:
+            operation_key = f"{algorithm.algorithm_id}.{method.method_id}"
+            if not method.display_name_en:
+                report.add_error(
+                    "DISPLAY_METADATA_MISSING",
+                    f"方法 {operation_key} 缺少 display_name_en",
+                    f"{operation_key}.display_name_en",
+                )
+            if not method.description_en:
+                report.add_error(
+                    "DISPLAY_METADATA_MISSING",
+                    f"方法 {operation_key} 缺少 description_en",
+                    f"{operation_key}.description_en",
+                )
+            for slot in method.input.slots:
+                if not slot.display_name_en:
+                    report.add_error(
+                        "DISPLAY_METADATA_MISSING",
+                        f"字段槽位 {operation_key}.{slot.id} 缺少 display_name_en",
+                        f"{operation_key}.input.slots.{slot.id}.display_name_en",
+                    )
+            _validate_parameter_display_metadata(method, operation_key, report)
+
+
+def _validate_parameter_display_metadata(
+    method: MethodManifest,
+    operation_key: str,
+    report: ValidationReport,
+) -> None:
+    """校验顶层运行参数及枚举选项是否可由通用界面直接展示。"""
+
+    properties = method.parameters_schema.get("properties")
+    if not isinstance(properties, dict):
+        return
+    for parameter_name, raw_schema in properties.items():
+        if not isinstance(parameter_name, str) or not isinstance(raw_schema, dict):
+            continue
+        location = f"{operation_key}.parameters_schema.properties.{parameter_name}"
+        if not raw_schema.get("title"):
+            report.add_error(
+                "DISPLAY_METADATA_MISSING",
+                f"参数 {operation_key}.{parameter_name} 缺少中文 title",
+                f"{location}.title",
+            )
+        if not raw_schema.get("x-title-en"):
+            report.add_error(
+                "DISPLAY_METADATA_MISSING",
+                f"参数 {operation_key}.{parameter_name} 缺少英文 x-title-en",
+                f"{location}.x-title-en",
+            )
+        enum_values = raw_schema.get("enum")
+        if not isinstance(enum_values, list):
+            continue
+        one_of = raw_schema.get("oneOf")
+        if not isinstance(one_of, list):
+            one_of = []
+        labeled_values = [
+            option.get("const")
+            for option in one_of
+            if isinstance(option, dict) and option.get("title") and option.get("x-title-en")
+        ]
+        missing_values = [
+            value
+            for value in enum_values
+            if not any(value == labeled_value for labeled_value in labeled_values)
+        ]
+        if missing_values:
+            report.add_error(
+                "DISPLAY_METADATA_MISSING",
+                f"参数 {operation_key}.{parameter_name} 的枚举选项缺少中英文标题",
+                f"{location}.oneOf",
+            )
 
 
 def _validate_entry(
