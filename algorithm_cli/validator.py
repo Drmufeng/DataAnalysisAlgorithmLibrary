@@ -15,8 +15,8 @@ from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from pydantic import JsonValue
 
 from algorithm_sdk.errors import ProtocolError
-from algorithm_sdk.manifest import load_manifest
-from algorithm_sdk.models import MethodManifest, PackageManifest
+from algorithm_sdk.manifest import load_library_manifest, load_manifest
+from algorithm_sdk.models import LibraryManifest, MethodManifest, PackageManifest
 from algorithm_sdk.validation import normalize_parameters_schema
 
 MAX_PACKAGE_FILE_BYTES = 50 * 1024 * 1024
@@ -78,6 +78,44 @@ class ValidationReport:
         }
 
 
+@dataclass(slots=True)
+class LibraryValidationReport:
+    """完整算法库发行包的聚合校验结果。"""
+
+    library_id: str | None = None
+    version: str | None = None
+    module_count: int = 0
+    algorithm_count: int = 0
+    method_count: int = 0
+    modules: list[JsonValue] = field(default_factory=list)
+    issues: list[ValidationIssue] = field(default_factory=list)
+
+    @property
+    def is_valid(self) -> bool:
+        """任一内部模块出现 error 时，完整发行包都不能启用。"""
+
+        return not any(issue.level == "error" for issue in self.issues)
+
+    def add_error(self, code: str, message: str, location: str | None = None) -> None:
+        """追加阻止整库登记的问题。"""
+
+        self.issues.append(ValidationIssue("error", code, message, location))
+
+    def to_payload(self) -> dict[str, JsonValue]:
+        """生成平台可以保存的整库校验结果。"""
+
+        return {
+            "valid": self.is_valid,
+            "library_id": self.library_id,
+            "version": self.version,
+            "module_count": self.module_count,
+            "algorithm_count": self.algorithm_count,
+            "method_count": self.method_count,
+            "modules": self.modules,
+            "issues": [issue.to_payload() for issue in self.issues],
+        }
+
+
 def validate_package(
     package_dir: Path,
     *,
@@ -109,6 +147,127 @@ def validate_package(
     return report
 
 
+def validate_library(
+    library_root: Path,
+    *,
+    check_dependencies: bool = True,
+) -> LibraryValidationReport:
+    """校验根清单、全部模块及跨模块 operation key 唯一性。"""
+
+    report = LibraryValidationReport()
+    if not library_root.is_dir():
+        report.add_error("LIBRARY_NOT_FOUND", "算法库发行目录不存在")
+        return report
+    try:
+        manifest = load_library_manifest(library_root)
+    except ProtocolError as exc:
+        report.add_error("LIBRARY_MANIFEST_INVALID", exc.message, "library_manifest.json")
+        return report
+
+    report.library_id = manifest.library_id
+    report.version = manifest.version
+    _validate_declared_modules(
+        library_root,
+        manifest,
+        report,
+        check_dependencies=check_dependencies,
+    )
+    return report
+
+
+def _validate_declared_modules(
+    library_root: Path,
+    manifest: LibraryManifest,
+    report: LibraryValidationReport,
+    *,
+    check_dependencies: bool,
+) -> None:
+    """逐个校验模块清单，并拒绝根清单之外的隐式模块。"""
+
+    declared_paths = {module.manifest_path for module in manifest.modules}
+    discovered_paths = {
+        path.relative_to(library_root).as_posix()
+        for path in library_root.rglob("manifest.json")
+        if path.is_file()
+    }
+    for undeclared in sorted(discovered_paths - declared_paths):
+        report.add_error(
+            "UNDECLARED_MODULE",
+            "发现未在根清单登记的算法模块",
+            undeclared,
+        )
+
+    operation_locations: dict[str, str] = {}
+    for reference in manifest.modules:
+        location = reference.manifest_path
+        if reference.manifest_path.split("/", maxsplit=1)[0] != reference.module_id:
+            report.add_error(
+                "MODULE_PATH_MISMATCH",
+                "模块目录名必须和 module_id 一致",
+                location,
+            )
+            continue
+        module_dir = library_root / Path(reference.manifest_path).parent
+        package_report = validate_package(
+            module_dir,
+            check_dependencies=check_dependencies,
+        )
+        for issue in package_report.issues:
+            nested_location = location
+            if issue.location:
+                nested_location = f"{location}:{issue.location}"
+            report.issues.append(
+                ValidationIssue(issue.level, issue.code, issue.message, nested_location)
+            )
+        if package_report.package_id is None or package_report.version is None:
+            continue
+        try:
+            package_manifest = load_manifest(module_dir)
+        except ProtocolError:
+            continue
+        if package_manifest.package_id != reference.module_id:
+            report.add_error(
+                "MODULE_ID_MISMATCH",
+                "根清单 module_id 与模块 package_id 不一致",
+                location,
+            )
+        if package_manifest.version != reference.version:
+            report.add_error(
+                "MODULE_VERSION_MISMATCH",
+                "根清单模块版本与模块 manifest 版本不一致",
+                location,
+            )
+
+        module_method_count = sum(len(item.methods) for item in package_manifest.algorithms)
+        report.modules.append(
+            {
+                "module_id": package_manifest.package_id,
+                "module_name": package_manifest.package_name,
+                "version": package_manifest.version,
+                "protocol_version": package_manifest.protocol_version,
+                "manifest_path": reference.manifest_path,
+                "algorithm_count": len(package_manifest.algorithms),
+                "method_count": module_method_count,
+                "valid": package_report.is_valid,
+            }
+        )
+        report.algorithm_count += len(package_manifest.algorithms)
+        report.method_count += module_method_count
+        for algorithm in package_manifest.algorithms:
+            for method in algorithm.methods:
+                operation_key = f"{algorithm.algorithm_id}.{method.method_id}"
+                previous_location = operation_locations.get(operation_key)
+                if previous_location is not None:
+                    report.add_error(
+                        "DUPLICATE_OPERATION_KEY",
+                        f"方法编号 {operation_key} 已在 {previous_location} 登记",
+                        location,
+                    )
+                else:
+                    operation_locations[operation_key] = location
+    report.module_count = len(report.modules)
+
+
 def calculate_package_hash(package_dir: Path) -> str:
     """按相对文件名和内容计算稳定 SHA-256，不包含缓存和构建产物。"""
 
@@ -131,6 +290,12 @@ def calculate_package_hash(package_dir: Path) -> str:
             while chunk := file_handle.read(1024 * 1024):
                 digest.update(chunk)
     return digest.hexdigest()
+
+
+def calculate_library_hash(library_root: Path) -> str:
+    """计算根清单和全部已声明模块共同组成的稳定内容哈希。"""
+
+    return calculate_package_hash(library_root)
 
 
 def _should_ignore(relative_path: Path) -> bool:

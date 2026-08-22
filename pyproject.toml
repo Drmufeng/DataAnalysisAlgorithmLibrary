@@ -42,6 +42,7 @@ where = ["."]
 include = ["algorithm_sdk*", "algorithm_cli*", "runner_contract*", "packages*"]
 
 [tool.setuptools.package-data]
+"packages" = ["library_manifest.json"]
 "packages.descriptive_analysis" = ["manifest.json", "requirements.txt", "README.md"]
 "packages.data_processing" = ["manifest.json", "requirements.txt", "README.md"]
 "packages.time_signal_processing" = ["manifest.json", "requirements.txt", "README.md"]

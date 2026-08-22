@@ -473,3 +473,98 @@ class PackageManifest(StrictModel):
                 if f"{algorithm.algorithm_id}.{method.method_id}" == operation_key:
                     return method
         return None
+
+
+class LibraryModuleReference(StrictModel):
+    """完整算法库发行包中一个内部算法模块的固定引用。"""
+
+    module_id: str
+    version: str
+    manifest_path: str
+
+    @field_validator("module_id")
+    @classmethod
+    def validate_module_id(cls, value: str) -> str:
+        """模块编号沿用稳定英文标识规则。"""
+
+        if not IDENTIFIER_PATTERN.fullmatch(value):
+            raise ValueError("module_id 格式不正确")
+        return value
+
+    @field_validator("version")
+    @classmethod
+    def validate_module_version(cls, value: str) -> str:
+        """模块版本独立于算法库发行版本，并使用三段式版本号。"""
+
+        if not SEMVER_PATTERN.fullmatch(value):
+            raise ValueError("模块 version 必须使用三段式版本号，例如 1.0.0")
+        return value
+
+    @field_validator("manifest_path")
+    @classmethod
+    def validate_manifest_path(cls, value: str) -> str:
+        """根清单只允许引用同级模块目录中的 manifest.json。"""
+
+        expected_suffix = "/manifest.json"
+        if not value.endswith(expected_suffix) or value.startswith(("/", "\\")):
+            raise ValueError("manifest_path 必须使用 module_id/manifest.json 相对路径")
+        parts = value.split("/")
+        if len(parts) != 2 or parts[0] in {"", ".", ".."}:
+            raise ValueError("manifest_path 必须使用 module_id/manifest.json 相对路径")
+        return value
+
+
+class LibraryManifest(StrictModel):
+    """一次整体上传、校验和发布使用的算法库根清单。"""
+
+    library_protocol_version: str
+    library_id: str
+    library_name: str
+    library_name_en: str
+    version: str
+    distribution_name: str
+    publisher: str
+    description: str
+    description_en: str
+    modules: list[LibraryModuleReference] = Field(min_length=1)
+
+    @field_validator("library_protocol_version")
+    @classmethod
+    def validate_library_protocol_version(cls, value: str) -> str:
+        """第一阶段只接受 1.x 发行包协议。"""
+
+        if not PROTOCOL_VERSION_PATTERN.fullmatch(value):
+            raise ValueError("library_protocol_version 必须使用 '主版本.次版本' 格式")
+        if value.split(".", maxsplit=1)[0] != "1":
+            raise ValueError("当前只支持 1.x 算法库发行协议")
+        return value
+
+    @field_validator("library_id")
+    @classmethod
+    def validate_library_id(cls, value: str) -> str:
+        """算法库编号用于平台长期识别同一条发行线。"""
+
+        if not IDENTIFIER_PATTERN.fullmatch(value):
+            raise ValueError("library_id 格式不正确")
+        return value
+
+    @field_validator("version")
+    @classmethod
+    def validate_library_version(cls, value: str) -> str:
+        """完整发行版本必须与 Wheel 项目版本保持一致。"""
+
+        if not SEMVER_PATTERN.fullmatch(value):
+            raise ValueError("version 必须使用三段式版本号，例如 1.0.0")
+        return value
+
+    @model_validator(mode="after")
+    def ensure_unique_modules(self) -> LibraryManifest:
+        """根清单中的模块编号和路径都不能重复。"""
+
+        module_ids = [module.module_id for module in self.modules]
+        paths = [module.manifest_path for module in self.modules]
+        if len(module_ids) != len(set(module_ids)):
+            raise ValueError("modules 存在重复 module_id")
+        if len(paths) != len(set(paths)):
+            raise ValueError("modules 存在重复 manifest_path")
+        return self

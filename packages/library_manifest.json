@@ -1,0 +1,53 @@
+{
+  "library_protocol_version": "1.0",
+  "library_id": "data_analysis_algorithm_library",
+  "library_name": "数据分析算法库",
+  "library_name_en": "Data Analysis Algorithm Library",
+  "version": "0.2.0",
+  "distribution_name": "data-analysis-algorithm-library",
+  "publisher": "Drmufeng",
+  "description": "面向数据处理、统计分析和机器学习任务的完整 Python 算法库发行包。",
+  "description_en": "A complete Python algorithm library release for data processing, statistical analysis, and machine learning tasks.",
+  "modules": [
+    {
+      "module_id": "clustering_models",
+      "version": "0.1.0",
+      "manifest_path": "clustering_models/manifest.json"
+    },
+    {
+      "module_id": "data_processing",
+      "version": "0.2.0",
+      "manifest_path": "data_processing/manifest.json"
+    },
+    {
+      "module_id": "descriptive_analysis",
+      "version": "0.1.0",
+      "manifest_path": "descriptive_analysis/manifest.json"
+    },
+    {
+      "module_id": "lightgbm_classification",
+      "version": "0.1.0",
+      "manifest_path": "lightgbm_classification/manifest.json"
+    },
+    {
+      "module_id": "ml_classification",
+      "version": "0.1.0",
+      "manifest_path": "ml_classification/manifest.json"
+    },
+    {
+      "module_id": "statistical_association",
+      "version": "0.1.0",
+      "manifest_path": "statistical_association/manifest.json"
+    },
+    {
+      "module_id": "statistical_models",
+      "version": "0.1.0",
+      "manifest_path": "statistical_models/manifest.json"
+    },
+    {
+      "module_id": "time_signal_processing",
+      "version": "0.2.0",
+      "manifest_path": "time_signal_processing/manifest.json"
+    }
+  ]
+}

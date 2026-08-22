@@ -1,7 +1,7 @@
 """算法包与执行器共享的公开协议。"""
 
 from algorithm_sdk.errors import ErrorCode, ProtocolError
-from algorithm_sdk.manifest import load_manifest
+from algorithm_sdk.manifest import load_library_manifest, load_manifest
 from algorithm_sdk.models import (
     AlgorithmRequest,
     AlgorithmResult,
@@ -9,6 +9,8 @@ from algorithm_sdk.models import (
     ChartSpec,
     DataType,
     FieldMetadata,
+    LibraryManifest,
+    LibraryModuleReference,
     Metric,
     PackageManifest,
     ResultTable,
@@ -26,6 +28,8 @@ __all__ = [
     "DataType",
     "ErrorCode",
     "FieldMetadata",
+    "LibraryManifest",
+    "LibraryModuleReference",
     "Metric",
     "PackageManifest",
     "ProtocolError",
@@ -34,6 +38,7 @@ __all__ = [
     "TableColumn",
     "WarningItem",
     "load_manifest",
+    "load_library_manifest",
     "result_to_payload",
     "to_json_compatible",
 ]
