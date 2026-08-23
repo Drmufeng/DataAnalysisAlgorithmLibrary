@@ -178,6 +178,58 @@ class ChartSpec(StrictModel):
         return to_json_compatible(value)
 
 
+class ReportBlockSpec(StrictModel):
+    """报告中的一个通用排版区块，通过编号引用结果数据，不复制正文。"""
+
+    id: str
+    block_type: Literal["metrics", "table", "chart", "text", "warnings", "metadata"]
+    title: str | None = None
+    reference_ids: list[str] = Field(default_factory=list)
+    width: Literal["full", "half", "third", "two_thirds"] = "full"
+    order: int = Field(ge=0)
+    visible_when_empty: bool = False
+    options: dict[str, JsonValue] = Field(default_factory=dict)
+
+    @field_validator("options", mode="before")
+    @classmethod
+    def normalize_options(cls, value: object) -> JsonValue:
+        """排版选项保持框架无关，并确保可以进入严格 JSON。"""
+
+        return to_json_compatible(value)
+
+    @model_validator(mode="after")
+    def validate_references(self) -> ReportBlockSpec:
+        """引用型区块必须指定结果编号，集合型区块允许引用列表为空表示全部。"""
+
+        if self.block_type in {"table", "chart"} and not self.reference_ids:
+            raise ValueError("table/chart 报告区块至少需要一个 reference_id")
+        if len(self.reference_ids) != len(set(self.reference_ids)):
+            raise ValueError("报告区块 reference_ids 不能重复")
+        return self
+
+
+class ReportPresentationSpec(StrictModel):
+    """与网页、PDF 和 Word 渲染器共享的报告排版声明。"""
+
+    protocol_version: str = "1.0"
+    title: str | None = None
+    subtitle: str | None = None
+    layout: Literal["single_column", "responsive_grid"] = "responsive_grid"
+    blocks: list[ReportBlockSpec] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def ensure_unique_blocks(self) -> ReportPresentationSpec:
+        """区块编号和排序必须稳定，保证报告归档后可以复现。"""
+
+        block_ids = [item.id for item in self.blocks]
+        if len(block_ids) != len(set(block_ids)):
+            raise ValueError("报告区块 id 不能重复")
+        orders = [item.order for item in self.blocks]
+        if len(orders) != len(set(orders)):
+            raise ValueError("报告区块 order 不能重复")
+        return self
+
+
 class WarningItem(StrictModel):
     """不会阻止算法成功，但需要用户注意的情况。"""
 
@@ -203,6 +255,7 @@ class AlgorithmResult(StrictModel):
     metrics: list[Metric] = Field(default_factory=list)
     tables: list[ResultTable] = Field(default_factory=list)
     charts: list[ChartSpec] = Field(default_factory=list)
+    presentation: ReportPresentationSpec | None = None
     warnings: list[WarningItem] = Field(default_factory=list)
     metadata: dict[str, JsonValue] = Field(default_factory=dict)
 
@@ -212,6 +265,28 @@ class AlgorithmResult(StrictModel):
         """运行元数据统一接收时间、NumPy 标量和标准缺失值。"""
 
         return to_json_compatible(value)
+
+    @model_validator(mode="after")
+    def validate_presentation_references(self) -> AlgorithmResult:
+        """排版声明只能引用同一次算法结果中真实存在的指标、表格或图表。"""
+
+        if self.presentation is None:
+            return self
+        known = {
+            "metrics": {item.id for item in self.metrics},
+            "table": {item.id for item in self.tables},
+            "chart": {item.id for item in self.charts},
+        }
+        for block in self.presentation.blocks:
+            valid_ids = known.get(block.block_type)
+            if valid_ids is None:
+                continue
+            missing = set(block.reference_ids) - valid_ids
+            if missing:
+                raise ValueError(
+                    f"报告区块 {block.id} 引用了不存在的结果：{', '.join(sorted(missing))}"
+                )
+        return self
 
 
 class RuntimeDependency(StrictModel):

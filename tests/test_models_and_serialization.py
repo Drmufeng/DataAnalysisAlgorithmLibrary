@@ -9,7 +9,14 @@ import pandas as pd
 import pytest
 from pydantic import ValidationError
 
-from algorithm_sdk.models import AlgorithmRequest, AlgorithmResult, Metric
+from algorithm_sdk.models import (
+    AlgorithmRequest,
+    AlgorithmResult,
+    ChartSpec,
+    Metric,
+    ReportBlockSpec,
+    ReportPresentationSpec,
+)
 from algorithm_sdk.serialization import result_to_payload, to_json_compatible
 from tests.helpers import make_overview_request
 
@@ -48,3 +55,59 @@ def test_unknown_result_type_is_rejected() -> None:
 
     with pytest.raises(TypeError, match="不能序列化"):
         to_json_compatible(object())
+
+
+def test_report_presentation_serializes_and_validates_references() -> None:
+    """报告排版只引用结构化结果，并保持与具体图表前端无关。"""
+
+    chart = ChartSpec(
+        id="trend",
+        display_name="趋势图",
+        chart_type="line",
+        data={"x": [1, 2], "y": [3, 4]},
+    )
+    result = AlgorithmResult(
+        metrics=[Metric(id="count", display_name="样本量", value=2)],
+        charts=[chart],
+        presentation=ReportPresentationSpec(
+            title="分析结果",
+            blocks=[
+                ReportBlockSpec(
+                    id="summary",
+                    block_type="metrics",
+                    reference_ids=["count"],
+                    width="full",
+                    order=0,
+                ),
+                ReportBlockSpec(
+                    id="trend_chart",
+                    block_type="chart",
+                    reference_ids=["trend"],
+                    width="full",
+                    order=1,
+                ),
+            ],
+        ),
+    )
+    payload = result_to_payload(result)
+    presentation = payload["presentation"]
+    assert isinstance(presentation, dict)
+    blocks = presentation["blocks"]
+    assert isinstance(blocks, list)
+    trend_block = blocks[1]
+    assert isinstance(trend_block, dict)
+    assert trend_block["reference_ids"] == ["trend"]
+
+    with pytest.raises(ValidationError, match="不存在的结果"):
+        AlgorithmResult(
+            presentation=ReportPresentationSpec(
+                blocks=[
+                    ReportBlockSpec(
+                        id="missing_chart",
+                        block_type="chart",
+                        reference_ids=["not_found"],
+                        order=0,
+                    )
+                ]
+            )
+        )
