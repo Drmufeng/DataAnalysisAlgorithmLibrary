@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
-from typing import Any
+from pathlib import Path
+from typing import Any, cast
 
 import numpy as np
 import pandas as pd
@@ -363,3 +365,43 @@ OPERATION_CASES: dict[str, OperationCase] = {
         {"train_ratio": 0.8, "n_estimators": 30, "min_child_samples": 5},
     ),
 }
+
+
+def _load_studio_operation_cases() -> None:
+    """加载工作台为新方法生成的最小真实运行用例。"""
+
+    cases_path = Path(__file__).with_name("studio_operation_cases.json")
+    if not cases_path.is_file():
+        return
+    raw_payload: object = json.loads(cases_path.read_text(encoding="utf-8"))
+    if not isinstance(raw_payload, dict):
+        raise RuntimeError("studio_operation_cases.json 根节点必须是对象")
+    payload = cast(dict[str, object], raw_payload)
+    for operation_key, raw_case in payload.items():
+        if operation_key in OPERATION_CASES:
+            raise RuntimeError(f"工作台运行用例重复：{operation_key}")
+        if not isinstance(raw_case, dict):
+            raise RuntimeError(f"工作台运行用例格式错误：{operation_key}")
+        case = cast(dict[str, object], raw_case)
+        package_id = case.get("package_id")
+        raw_slots = case.get("slots")
+        raw_parameters = case.get("parameters")
+        if not isinstance(package_id, str) or not isinstance(raw_slots, dict):
+            raise RuntimeError(f"工作台运行用例缺少 package_id 或 slots：{operation_key}")
+        slots: dict[str, list[str]] = {}
+        for slot_id, raw_columns in cast(dict[str, object], raw_slots).items():
+            if not isinstance(raw_columns, list) or not all(
+                isinstance(column, str) for column in raw_columns
+            ):
+                raise RuntimeError(f"工作台运行用例槽位格式错误：{operation_key}.{slot_id}")
+            slots[slot_id] = cast(list[str], raw_columns)
+        if not isinstance(raw_parameters, dict):
+            raise RuntimeError(f"工作台运行用例 parameters 格式错误：{operation_key}")
+        OPERATION_CASES[operation_key] = OperationCase(
+            package_id=package_id,
+            slots=slots,
+            parameters=cast(dict[str, JsonValue], raw_parameters),
+        )
+
+
+_load_studio_operation_cases()

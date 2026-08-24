@@ -17,26 +17,38 @@ from tests.operation_cases import OPERATION_CASES, make_algorithm_data, make_req
 
 PROJECT_ROOT = Path(__file__).parents[1]
 PACKAGES_ROOT = PROJECT_ROOT / "packages"
+LEGACY_DATA_OPERATION_PREFIXES = (
+    "data_encoding.",
+    "outlier_handling.",
+    "invalid_sample_handling.",
+    "time_series_window.",
+    "data_downsampling.",
+    "kmeans_clustering.",
+    "dbscan_clustering.",
+)
 
 
-def _manifest_operation_keys() -> set[str]:
-    """读取全部算法包登记的方法编号。"""
+def _manifest_operations() -> dict[str, bool]:
+    """读取全部方法及其是否产生数据版本。"""
 
-    operations: set[str] = set()
+    operations: dict[str, bool] = {}
     for package_dir in PACKAGES_ROOT.iterdir():
         if not package_dir.is_dir() or not (package_dir / "manifest.json").is_file():
             continue
         manifest = load_manifest(package_dir)
         for algorithm in manifest.algorithms:
             for method in algorithm.methods:
-                operations.add(f"{algorithm.algorithm_id}.{method.method_id}")
+                operation_key = f"{algorithm.algorithm_id}.{method.method_id}"
+                operations[operation_key] = method.output.get(
+                    "produces_data_version"
+                ) is True or operation_key.startswith(LEGACY_DATA_OPERATION_PREFIXES)
     return operations
 
 
 def test_every_manifest_operation_has_a_runtime_case() -> None:
     """清单新增方法时必须同步增加运行测试，防止只登记不执行。"""
 
-    assert _manifest_operation_keys() == set(OPERATION_CASES)
+    assert set(_manifest_operations()) == set(OPERATION_CASES)
 
 
 @pytest.mark.parametrize(
@@ -70,21 +82,7 @@ def test_every_operation_runs_and_returns_strict_json(operation_key: str) -> Non
 
 @pytest.mark.parametrize(
     "operation_key",
-    [
-        key
-        for key in sorted(OPERATION_CASES)
-        if key.startswith(
-            (
-                "data_encoding.",
-                "outlier_handling.",
-                "invalid_sample_handling.",
-                "time_series_window.",
-                "data_downsampling.",
-                "kmeans_clustering.",
-                "dbscan_clustering.",
-            )
-        )
-    ],
+    [key for key, produces_data in sorted(_manifest_operations().items()) if produces_data],
 )
 def test_data_changing_operations_return_a_new_frame(operation_key: str) -> None:
     """改变数据的操作必须返回新 DataFrame，平台据此创建数据版本。"""
@@ -102,21 +100,7 @@ def test_data_changing_operations_return_a_new_frame(operation_key: str) -> None
 
 @pytest.mark.parametrize(
     "operation_key",
-    [
-        key
-        for key in sorted(OPERATION_CASES)
-        if not key.startswith(
-            (
-                "data_encoding.",
-                "outlier_handling.",
-                "invalid_sample_handling.",
-                "time_series_window.",
-                "data_downsampling.",
-                "kmeans_clustering.",
-                "dbscan_clustering.",
-            )
-        )
-    ],
+    [key for key, produces_data in sorted(_manifest_operations().items()) if not produces_data],
 )
 def test_analysis_operations_do_not_return_a_data_version(operation_key: str) -> None:
     """纯分析方法只返回结构化结果，不应伪造数据版本。"""

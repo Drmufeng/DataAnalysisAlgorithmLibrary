@@ -24,6 +24,10 @@ dependencies = [
 full = [
   "lightgbm>=4.5,<5.0",
 ]
+studio = [
+  "PySide6>=6.7,<7.0",
+  "PyQtDarkTheme-fork>=2.3.6,<3.0",
+]
 dev = [
   "build>=1.2,<2.0",
   "mypy>=1.11,<2.0",
@@ -36,10 +40,17 @@ dev = [
 [project.scripts]
 dal-algorithm = "algorithm_cli.cli:main"
 dal-runner = "runner_contract.cli:main"
+dal-studio = "algorithm_studio.__main__:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["algorithm_sdk*", "algorithm_cli*", "runner_contract*", "packages*"]
+include = [
+  "algorithm_sdk*",
+  "algorithm_cli*",
+  "algorithm_studio*",
+  "runner_contract*",
+  "packages*",
+]
 
 [tool.setuptools.package-data]
 "packages" = ["library_manifest.json"]
@@ -67,7 +78,14 @@ select = ["E4", "E7", "E9", "F", "I", "UP", "B", "SIM"]
 python_version = "3.11"
 strict = true
 plugins = ["pydantic.mypy"]
-files = ["algorithm_sdk", "algorithm_cli", "runner_contract", "packages", "tests"]
+files = [
+  "algorithm_sdk",
+  "algorithm_cli",
+  "algorithm_studio",
+  "runner_contract",
+  "packages",
+  "tests",
+]
 exclude = ["build", "dist", ".venv"]
 
 [[tool.mypy.overrides]]
