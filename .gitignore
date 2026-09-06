@@ -12,3 +12,6 @@ dist/
 output/
 examples/data/
 *.log
+
+# Personal reference document, not a project release asset.
+/论文模板.docx

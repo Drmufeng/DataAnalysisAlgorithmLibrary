@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-labelledby="title desc">
+  <title id="title">数析算法库</title>
+  <desc id="desc">算法星图与小鲸鱼的原创矢量插画，深海蓝、雾蓝与浅紫配色。</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0b172d"/><stop offset=".62" stop-color="#132e50"/><stop offset="1" stop-color="#293763"/></linearGradient>
+    <radialGradient id="aura"><stop stop-color="#9a81d2" stop-opacity=".24"/><stop offset="1" stop-color="#122747" stop-opacity="0"/></radialGradient>
+    <linearGradient id="whale" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#badcef"/><stop offset=".6" stop-color="#8cafe8"/><stop offset="1" stop-color="#a39bd6"/></linearGradient>
+    <clipPath id="frame"><rect width="1280" height="400" rx="20"/></clipPath>
+  </defs>
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="400" fill="url(#sky)"/>
+    <ellipse cx="989" cy="173" rx="393" ry="274" fill="url(#aura)"/>
+    <circle cx="32" cy="20" r="2" fill="#bddbff" opacity=".6"/>
+    <circle cx="205" cy="79" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="378" cy="138" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="551" cy="197" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="724" cy="256" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="897" cy="315" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="1070" cy="48" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="33" cy="107" r="2" fill="#bddbff" opacity=".24"/>
+    <circle cx="206" cy="166" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="379" cy="225" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="552" cy="284" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="725" cy="343" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="898" cy="76" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="1071" cy="135" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="34" cy="194" r="2" fill="#bddbff" opacity=".24"/>
+    <circle cx="207" cy="253" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="380" cy="312" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="553" cy="45" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="726" cy="104" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="899" cy="163" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="1072" cy="222" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="35" cy="281" r="2" fill="#bddbff" opacity=".24"/>
+    <circle cx="208" cy="340" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="381" cy="73" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="554" cy="132" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="727" cy="191" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="900" cy="250" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="1073" cy="309" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="36" cy="42" r="2" fill="#bddbff" opacity=".6"/>
+    <circle cx="209" cy="101" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="382" cy="160" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="555" cy="219" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="728" cy="278" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="901" cy="337" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="1074" cy="70" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="37" cy="129" r="2" fill="#bddbff" opacity=".24"/>
+    <circle cx="210" cy="188" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="383" cy="247" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="556" cy="306" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="729" cy="39" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="902" cy="98" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="1075" cy="157" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="38" cy="216" r="2" fill="#bddbff" opacity=".24"/>
+    <circle cx="211" cy="275" r="1" fill="#bddbff" opacity=".24"/>
+    <circle cx="384" cy="334" r="1" fill="#bddbff" opacity=".6"/>
+    <circle cx="557" cy="67" r="1" fill="#bddbff" opacity=".24"/>
+    <path d="M0 326 C258 237 424 403 722 320 S1096 247 1280 299 V400 H0Z" fill="#83a9d2" opacity=".05"/>
+    <path d="M0 352 C211 290 452 399 722 344 S1040 292 1280 333" fill="none" stroke="#a9ccef" stroke-opacity=".15"/>
+    <path d="M60 53 H104" stroke="#8bd3ed" stroke-width="3"/><circle cx="117" cy="53" r="3" fill="#d5afe1"/>
+    <g font-family="'Segoe UI','Microsoft YaHei','Noto Sans CJK SC',sans-serif">
+      <text x="60" y="87" font-size="13" letter-spacing="3" fill="#a7bbd9">DATA ANALYSIS / ALGORITHM LIBRARY</text>
+      <text x="56" y="179" font-size="78" font-weight="650" letter-spacing="7" fill="#f0f5ff">算法库</text>
+      <text x="62" y="224" font-size="24" letter-spacing="2" fill="#c7d8ee">把一个方法写清楚，把一次结果算明白。</text>
+      <text x="62" y="305" font-size="13" letter-spacing="2" fill="#8aabce">PYTHON  /  SDK  /  CLI  /  QT STUDIO</text>
+      <text x="62" y="363" font-size="11" letter-spacing="2" fill="#7391b4">SHUXI  ·  ALGORITHM LIBRARY</text>
+    </g>
+
+    <g transform="translate(958 181)" fill="none">
+      <circle r="130" stroke="#8ea4ed" stroke-opacity=".15"/>
+      <circle r="92" stroke="#8ea4ed" stroke-opacity=".28" stroke-dasharray="2 8"/>
+      <ellipse rx="175" ry="53" transform="rotate(-25)" stroke="#aad0ec" stroke-opacity=".4"/>
+      <path d="M0 -92 L88 -28 L54 76 L-54 76 L-88 -28Z M0 -92 L54 76 L-88 -28 L88 -28 L-54 76Z" stroke="#97acf2" stroke-opacity=".42"/>
+      <path d="M0 -31 L10 -9 L33 0 L10 9 L0 32 L-10 9 L-33 0 L-10 -9Z" fill="#d8e2ff" stroke="#faf7ff" stroke-width="1.5"/>
+      <circle cx="0" cy="-92" r="9" fill="#152e55" stroke="#a8dcf7" stroke-width="2"/>
+      <circle cx="88" cy="-28" r="7" fill="#afd4ee"/>
+      <circle cx="54" cy="76" r="8" fill="#ada4ed"/>
+      <circle cx="-54" cy="76" r="7" fill="#7fcfdb"/>
+      <circle cx="-88" cy="-28" r="8" fill="#e6b5df"/>
+      <circle cx="162" cy="-47" r="5" fill="#eee4f6"/>
+    </g>
+    <g transform="translate(1062 285) scale(.4)">
+      <path d="M268 82 C311 88 334 68 337 33 C365 34 374 56 361 79 C390 66 407 76 416 101 C384 130 352 126 337 111 C325 171 267 202 187 201 C99 199 16 165 16 103 C16 44 98 7 184 18 C247 23 274 44 268 82Z" fill="url(#whale)" stroke="#bddbff" stroke-width="2"/>
+      <path d="M19 113 C51 139 92 139 152 133 C224 127 263 127 283 146 C254 184 221 196 181 195 C97 193 24 162 19 113Z" fill="#dceeff" opacity=".9"/>
+      <path d="M154 147 C161 181 181 200 208 207 C224 204 223 180 210 161" fill="#8fa8ed" stroke="#c1d3ff" stroke-width="2"/>
+      <path d="M100 55 C92 49 82 52 76 58" stroke="#ecf6ff" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <ellipse cx="73" cy="97" rx="8" ry="11" fill="#142641"/><circle cx="75" cy="93" r="3" fill="#fff"/>
+      <ellipse cx="55" cy="118" rx="14" ry="6" fill="#eeaed8" opacity=".85"/>
+      <path d="M47 133 Q59 140 74 135" fill="none" stroke="#3f587f" stroke-width="2.8" stroke-linecap="round"/>
+      <path d="M127 17 Q111 -2 120 -20 M128 16 Q141 -5 154 -7" fill="none" stroke="#91d9eb" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="119" cy="-27" r="4" fill="#a0e6f2"/><circle cx="158" cy="-11" r="3" fill="#d2d5ff"/>
+    </g>
+  </g>
+</svg>
