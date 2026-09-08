@@ -335,8 +335,8 @@ DataAnalysisAlgorithmLibrary/
 | [报告排版协议](docs/报告排版协议.md) | 图表、表格与排版声明如何交给平台 |
 | [算法工作台](docs/算法库工作台.md) | Qt 界面、方法创建与当前限制 |
 | [项目说明](项目说明.md) | 项目概况和维护背景 |
-| [平台运行协议](https://github.com/Drmufeng/DataAnalysisSystem/blob/main/docs/05-算法库与运行协议.md) | 平台与算法库之间的接口约定 |
-| [整库发行与模块对齐](https://github.com/Drmufeng/DataAnalysisSystem/blob/main/docs/22-完整算法库发行与模块对齐实现说明.md) | 完整发行包的导入和发布流程 |
+| [平台运行协议](https://github.com/Drmufeng/DataAnalysisSystem/blob/main/docs/协议与规范/05-算法库与运行协议.md) | 平台与算法库之间的接口约定 |
+| [整库发行与模块对齐](https://github.com/Drmufeng/DataAnalysisSystem/blob/main/docs/功能实现/22-完整算法库发行与模块对齐实现说明.md) | 完整发行包的导入和发布流程 |
 
 ## 许可与仓库内容
 
