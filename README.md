@@ -4,7 +4,7 @@
 
 # 数析算法库 · Data Analysis Algorithm Library
 
-把一个方法写清楚，把一次结果算明白。
+这里放算法，也放清单、协议和能把它们跑起来的工具。
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.12-3776AB?style=flat-square&logo=python&logoColor=white)](pyproject.toml)
 [![Library](https://img.shields.io/badge/Library-0.2.0-687FE5?style=flat-square)](packages/library_manifest.json)
@@ -12,17 +12,29 @@
 [![Methods](https://img.shields.io/badge/Methods-53-4385B9?style=flat-square)](#算法目录)
 [![Studio](https://img.shields.io/badge/Optional%20studio-PySide6-41CD52?style=flat-square&logo=qt&logoColor=white)](#算法工作台)
 
-[算法目录](#算法目录) · [快速开始](#快速开始) · [算法工作台](#算法工作台) · [开发与发布](#开发与发布) · [数析平台](https://github.com/Drmufeng/DataAnalysisSystem)
+[项目介绍](#项目介绍) · [快速开始](#快速开始) · [算法目录](#算法目录) · [算法工作台](#算法工作台) · [开发与发布](#开发与发布) · [文档索引](docs/文档索引.md) · [数析平台](https://github.com/Drmufeng/DataAnalysisSystem)
 
 </div>
 
 ## 项目介绍
 
-这是数析平台的独立 Python 算法库，负责数据处理、统计分析和机器学习计算。它接收表格、字段角色、参数与运行上下文，返回统一的指标、结果表、图表描述和处理后的数据。
+数析把实际计算放在这个独立的 Python 仓库里。这里保存数据处理、统计分析和机器学习方法，也保存每个方法的输入要求、参数定义、结果结构和测试。
 
-你可以用命令行校验与运行方法，也可以通过 Python SDK 调用；维护源码时，可选用随项目提供的 PySide6 算法工作台。平台的 Worker 复用同一套运行协议。
+平台提交任务后，Worker 根据 `operation_key` 找到方法，将表格、字段角色、参数和运行上下文交给它。方法返回指标、结果表、图表描述，处理类方法还可以返回一份新的数据。命令行、Python SDK 和平台 Worker 使用的是同一套协议。
 
-算法库与平台分别维护：算法库定义计算方法和结果结构，平台提供账号、企业权限、任务调度、配额和网页报告。算法库不需要单独启动 Web 服务。
+这个仓库不负责账号、权限、任务调度和网页报告，这些功能在[数析平台](https://github.com/Drmufeng/DataAnalysisSystem)中。算法库本身不需要启动 Web 服务。平时可以在 IDE 中维护源码，也可以使用仓库自带的 PySide6 工作台。
+
+<img src="docs/assets/readme-workflow-doodle.svg" width="100%" alt="手绘风算法运行流程：表格和字段经过方法清单与执行器，生成指标、表格、图表或新数据" />
+
+### 从哪里开始
+
+| 你准备做什么 | 建议入口 |
+| --- | --- |
+| 第一次运行仓库 | 跟着[快速开始](#快速开始)完成安装、校验和真实示例 |
+| 查找已有方法 | 浏览[算法目录](#算法目录)和各模块说明 |
+| 在界面中维护代码 | 安装并打开[算法工作台](#算法工作台) |
+| 新增或修改算法 | 阅读[开发与发布](#开发与发布)和[文档索引](docs/文档索引.md) |
+| 接入平台 Worker | 查看[平台运行协议](https://github.com/Drmufeng/DataAnalysisSystem/blob/main/docs/协议与规范/05-算法库与运行协议.md) |
 
 ## 算法目录
 
